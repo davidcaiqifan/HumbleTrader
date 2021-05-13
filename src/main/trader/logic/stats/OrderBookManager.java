@@ -7,6 +7,7 @@ import com.binance.api.client.domain.market.OrderBook;
 import com.binance.api.client.domain.market.OrderBookEntry;
 import logic.EventManager;
 import logic.eventproducers.EventProducer;
+import model.Event;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class OrderBookManager implements StatsManager {
@@ -23,12 +25,12 @@ public class OrderBookManager implements StatsManager {
     private long lastUpdateId;
     private Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
     private EventManager eventManager;
-    private LinkedBlockingDeque<DepthEvent> depthEventQueue;
+    private LinkedBlockingDeque<Event> depthEventQueue;
 
     public OrderBookManager(EventManager eventManager) {
         this.eventManager = eventManager;
         initializeDepthCache("BTCUSDT");
-        int index = eventManager.addEventStream("trade");
+        int index = eventManager.addEventStream("orderbook");
         Thread t1 = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -46,7 +48,7 @@ public class OrderBookManager implements StatsManager {
         BinanceApiRestClient client = factory.newRestClient();
         OrderBook orderBook = client.getOrderBook(symbol.toUpperCase(), 10);
 
-        this.depthCache = new HashMap<>();
+        this.depthCache = new ConcurrentHashMap<>();
         this.lastUpdateId = orderBook.getLastUpdateId();
 
         NavigableMap<BigDecimal, BigDecimal> asks = new TreeMap<>(Comparator.reverseOrder());
@@ -69,7 +71,7 @@ public class OrderBookManager implements StatsManager {
         this.depthEventQueue = eventManager.getEventQueue(eventQueueIndex);
         while(true) {
             try {
-                DepthEvent newEvent = this.depthEventQueue.take();
+                DepthEvent newEvent = this.depthEventQueue.take().getDepthEvent();
                 lastUpdateId = newEvent.getFinalUpdateId();
                 updateOrderBook(getAsks(), newEvent.getAsks());
                 updateOrderBook(getBids(), newEvent.getBids());
@@ -109,7 +111,7 @@ public class OrderBookManager implements StatsManager {
     /**
      * @return the best ask in the order book
      */
-    private Map.Entry<BigDecimal, BigDecimal> getBestAsk() {
+    public Map.Entry<BigDecimal, BigDecimal> getBestAsk() {
         return getAsks().lastEntry();
     }
 

@@ -10,6 +10,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import logic.EventManager;
 import logic.stats.OrderBookManager;
+import logic.stats.TradeManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,8 +21,10 @@ import java.util.concurrent.TimeUnit;
 
 public class UiManager extends Application {
     final int WINDOW_SIZE = 100;
-    private ScheduledExecutorService scheduledExecutorService;
+    private ScheduledExecutorService scheduledExecutorServiceBid;
+    private ScheduledExecutorService scheduledExecutorServiceAsk;
     private OrderBookManager priceGenerator;
+    private TradeManager tradeGenerator;
     public static void main(String[] args) {
         launch(args);
     }
@@ -29,7 +32,9 @@ public class UiManager extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("JavaFX Realtime Chart Demo");
-        priceGenerator = new OrderBookManager(new EventManager());
+        EventManager eventManager = new EventManager();
+        //priceGenerator = new OrderBookManager(eventManager);
+        tradeGenerator = new TradeManager(eventManager);
         //defining the axes
         final CategoryAxis xAxis = new CategoryAxis(); // we are gonna plot against time
         final NumberAxis yAxis = new NumberAxis();
@@ -47,11 +52,16 @@ public class UiManager extends Application {
         lineChart.autosize();
 
         //defining a series to display data
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Data Series");
+        XYChart.Series<String, Number> seriesBid = new XYChart.Series<>();
+        seriesBid.setName("Trade price");
 
         // add series to chart
-        lineChart.getData().add(series);
+        lineChart.getData().add(seriesBid);
+
+        //do the same for ask
+//        XYChart.Series<String, Number> seriesAsk = new XYChart.Series<>();
+//        seriesBid.setName("Data Series Ask");
+//        lineChart.getData().add(seriesAsk);
 
         // setup scene
         Scene scene = new Scene(lineChart, 800, 600);
@@ -64,30 +74,48 @@ public class UiManager extends Application {
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
 
         // setup a scheduled executor to periodically put data into the chart
-        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorServiceBid = Executors.newSingleThreadScheduledExecutor();
 
         // put dummy data onto graph per second
-        scheduledExecutorService.scheduleAtFixedRate(() -> {
-            // get a random integer between 0-10
-            Integer random = ThreadLocalRandom.current().nextInt(10);
-            System.out.println("BEST BID: " + priceGenerator.toDepthCacheEntryString(priceGenerator.getBestBid()));
-            Double price = priceGenerator.getBestBid().getKey().doubleValue();
+        scheduledExecutorServiceBid.scheduleAtFixedRate(() -> {
+            //System.out.println("BEST BID: " + priceGenerator.toDepthCacheEntryString(priceGenerator.getBestBid()));
+            //Double price = priceGenerator.getBestBid().getKey().doubleValue();
+            Double aggTradePrice = tradeGenerator.getLastTradePrice();
             // Update the chart
             Platform.runLater(() -> {
                 // get current time
                 Date now = new Date();
                 // put random number with current time
-                series.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price));
+                seriesBid.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), aggTradePrice));
 
-                if (series.getData().size() > WINDOW_SIZE)
-                    series.getData().remove(0);
+                if (seriesBid.getData().size() > WINDOW_SIZE)
+                    seriesBid.getData().remove(0);
             });
         }, 0, 1, TimeUnit.SECONDS);
+
+        // setup a scheduled executor to periodically put data into the chart
+//        scheduledExecutorServiceAsk = Executors.newSingleThreadScheduledExecutor();
+//
+//        // put dummy data onto graph per second
+//        scheduledExecutorServiceAsk.scheduleAtFixedRate(() -> {
+//            System.out.println("BEST ASK: " + priceGenerator.toDepthCacheEntryString(priceGenerator.getBestAsk()));
+//            Double price = priceGenerator.getBestAsk().getKey().doubleValue();
+//            // Update the chart
+//            Platform.runLater(() -> {
+//                // get current time
+//                Date now = new Date();
+//                // put ask price with current time
+//                seriesAsk.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price));
+//
+//                if (seriesAsk.getData().size() > WINDOW_SIZE)
+//                    seriesAsk.getData().remove(0);
+//            });
+//        }, 0, 1, TimeUnit.SECONDS);
     }
 
     @Override
     public void stop() throws Exception {
         super.stop();
-        scheduledExecutorService.shutdownNow();
+        scheduledExecutorServiceBid.shutdownNow();
     }
 }
