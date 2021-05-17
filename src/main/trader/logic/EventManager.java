@@ -1,73 +1,106 @@
 package logic;
 
 import com.binance.api.client.BinanceApiClientFactory;
+import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.BinanceApiWebSocketClient;
+import com.binance.api.client.domain.event.AggTradeEvent;
 import com.binance.api.client.domain.event.DepthEvent;
+import com.binance.api.client.domain.market.AggTrade;
 import customWebSockets.BinanceCustomWebSocketClientImpl;
 import model.Event;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import static com.binance.api.client.impl.BinanceApiServiceGenerator.getSharedClient;
 
 public class EventManager {
-    public HashMap<Integer, LinkedBlockingDeque<Event>> eventQueueMap;
-    public EventManager() {
-        this.eventQueueMap = new HashMap<>();
-    }
+    /**
+     * Key is the aggregate trade id, and the value contains the aggregated trade data, which is
+     * automatically updated whenever a new agg data stream event arrives.
+     */
+    private Map<Long, AggTrade> aggTradesCache;
+    private DataGatewayManager dataGatewayManager;
 
-    //initializes event stream based on input
-    public int addEventStream(String eventType) {
-        //write error manage code later
-        if(eventType == "orderbook") {
-            eventQueueMap.put(1, new LinkedBlockingDeque<Event>());
-            Thread t1 = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    startDepthEventStreaming("BTCUSDT", 1);
-                }
-            });
-            t1.start();
-            return 1;
-        } else if(eventType == "trade") {
-            eventQueueMap.put(2, new LinkedBlockingDeque<Event>());
-            Thread t2 = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    startAggTradesEventStreaming("BTCUSDT", 2);
-                }
-            });
-            t2.start();
-            return 2;
-        }
-            else {
-            return 0;
-        }
+    public ScheduleManager getScheduleManager() {
+        return scheduleManager;
     }
-
-    public LinkedBlockingDeque<Event> getEventQueue(int eventQueueIndex) {
-        return eventQueueMap.get(eventQueueIndex);
+    private ScheduleManager scheduleManager;
+    private List<TradeEventListener> tradeEventlisteners = new ArrayList<TradeEventListener>();
+    public EventManager(DataGatewayManager dataGatewayManager) {
+        this.dataGatewayManager = dataGatewayManager;
+        this.scheduleManager = new ScheduleManager();
+        initializeAggTradesCache("BTCUSDT");
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                startAggTradesEventStreaming("BTCUSDT");
+            }
+        });
+        t1.start();
     }
 
     /**
-     * Begins streaming of depth events.
+     * Initializes the aggTrades cache by using the REST API.
      */
-    private void startDepthEventStreaming(String symbol, int eventQueueIndex) {
-        BinanceApiWebSocketClient client = new BinanceCustomWebSocketClientImpl(getSharedClient());
-        client.onDepthEvent(symbol.toLowerCase(), response -> {
-            eventQueueMap.get(eventQueueIndex).add(new Event(response));
-        });
+    private void initializeAggTradesCache(String symbol) {
+        List<AggTrade> aggTrades = dataGatewayManager.getTradeSnapshot(symbol);
+        this.aggTradesCache = new HashMap<>();
+        for (AggTrade aggTrade : aggTrades) {
+            aggTradesCache.put(aggTrade.getAggregatedTradeId(), aggTrade);
+        }
     }
 
     /**
      * Begins streaming of agg trades events.
      */
-    private void startAggTradesEventStreaming(String symbol, int eventQueueIndex) {
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance();
-        BinanceApiWebSocketClient client = factory.newWebSocketClient();
-        client.onAggTradeEvent(symbol.toLowerCase(), response -> {
-            eventQueueMap.get(eventQueueIndex).add(new Event(response));
-        });
+    private void startAggTradesEventStreaming(String symbol) {
+        this.dataGatewayManager.subscribeTradeEvents(symbol);
+        while(true) {
+            try {
+                AggTradeEvent response = this.dataGatewayManager.getTradeEvent();
+                publishTradeEvent(this.scheduleManager, response);
+                Long aggregatedTradeId = response.getAggregatedTradeId();
+                AggTrade updateAggTrade = aggTradesCache.get(aggregatedTradeId);
+                if (updateAggTrade == null) {
+                    // new agg trade
+                    updateAggTrade = new AggTrade();
+                }
+                updateAggTrade.setAggregatedTradeId(aggregatedTradeId);
+                updateAggTrade.setPrice(response.getPrice());
+                updateAggTrade.setQuantity(response.getQuantity());
+                updateAggTrade.setFirstBreakdownTradeId(response.getFirstBreakdownTradeId());
+                updateAggTrade.setLastBreakdownTradeId(response.getLastBreakdownTradeId());
+                updateAggTrade.setBuyerMaker(response.isBuyerMaker());
+                // Store the updated agg trade in the cache
+                aggTradesCache.put(aggregatedTradeId, updateAggTrade);
+                System.out.println(updateAggTrade.getPrice());
+            } catch(InterruptedException e) {
+                System.out.println(e);
+            }
+        }
+
     }
+
+    /**
+     * Add trade event listeners.
+     */
+    public void addTradeEventListener(TradeEventListener toAdd) {
+        tradeEventlisteners.add(toAdd);
+    }
+
+    public void publishTradeEvent(ScheduleManager scheduleManager, AggTradeEvent tradeEvent) {
+        // Notify everybody that may be interested.
+//        for (TradeEventListener tl : tradeEventlisteners)
+//            tl.handleTradeEvent();
+        scheduleManager.updateTradeEvent(tradeEvent);
+    }
+
+    public static void main(String[] args) {
+        new EventManager(new DataGatewayManager());
+    }
+
 }
