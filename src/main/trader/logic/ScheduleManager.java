@@ -1,7 +1,7 @@
 package logic;
 
-import com.binance.api.client.domain.account.Trade;
 import com.binance.api.client.domain.event.AggTradeEvent;
+import logic.listeners.ScheduledTradeEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;

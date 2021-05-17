@@ -41,6 +41,11 @@
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.4</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/net.openhft.com.binance.api/binance-api-client -->
         <dependency>
             <groupId>net.openhft.com.binance.api</groupId>

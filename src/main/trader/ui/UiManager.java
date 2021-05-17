@@ -8,9 +8,8 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import logic.DataGatewayManager;
+import logic.MarketDataManager;
 import logic.EventManager;
-import logic.stats.OrderBookManager;
 import logic.stats.ScheduledPriceUpdate;
 import logic.stats.TradeManager;
 
@@ -18,7 +17,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class UiManager extends Application {
@@ -34,7 +32,7 @@ public class UiManager extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("JavaFX Realtime Chart Demo");
-        EventManager eventManager = new EventManager(new DataGatewayManager());
+        EventManager eventManager = new EventManager(new MarketDataManager());
         this.priceGenerator = new ScheduledPriceUpdate();
         Thread t1 = new Thread(new Runnable() {
             @Override

@@ -1,9 +1,9 @@
 package logic.stats;
 
 import com.binance.api.client.domain.event.AggTradeEvent;
-import logic.DataGatewayManager;
+import logic.MarketDataManager;
 import logic.EventManager;
-import logic.ScheduledTradeEventListener;
+import logic.listeners.ScheduledTradeEventListener;
 
 public class ScheduledPriceUpdate implements ScheduledTradeEventListener {
     public double getPrice() {
@@ -17,14 +17,14 @@ public class ScheduledPriceUpdate implements ScheduledTradeEventListener {
         System.out.println(this.price);
     }
 
-    public static void main(String[] args) {
-        EventManager eventManager = new EventManager(new DataGatewayManager());
-        ScheduledPriceUpdate priceGenerator = new ScheduledPriceUpdate();
-        eventManager.getScheduleManager().periodicCallback(100, priceGenerator);
-        while(true) {
-            double price = priceGenerator.getPrice();
-            System.out.println(price);
-        }
-    }
+//    public static void main(String[] args) {
+//        EventManager eventManager = new EventManager(new MarketDataManager());
+//        ScheduledPriceUpdate priceGenerator = new ScheduledPriceUpdate();
+//        eventManager.getScheduleManager().periodicCallback(100, priceGenerator);
+//        while(true) {
+//            double price = priceGenerator.getPrice();
+//            System.out.println(price);
+//        }
+//    }
 
 }
