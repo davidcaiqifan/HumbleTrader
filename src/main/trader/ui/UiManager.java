@@ -81,6 +81,7 @@ public class UiManager extends Application {
             //System.out.println("BEST BID: " + priceGenerator.toDepthCacheEntryString(priceGenerator.getBestBid()));
             //Double price = priceGenerator.getBestBid().getKey().doubleValue();
             Double aggTradePrice = tradeGenerator.getLastTradePrice();
+            System.out.println(aggTradePrice);
             // Update the chart
             Platform.runLater(() -> {
                 // get current time
