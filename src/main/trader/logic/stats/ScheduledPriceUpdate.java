@@ -1,20 +1,25 @@
 package logic.stats;
 
 import com.binance.api.client.domain.event.AggTradeEvent;
-import logic.MarketDataManager;
-import logic.EventManager;
-import logic.listeners.ScheduledTradeEventListener;
+import logic.listeners.OrderBookEventListener;
+import logic.listeners.ScheduledListener;
 
-public class ScheduledPriceUpdate implements ScheduledTradeEventListener {
-    public double getPrice() {
-        return price;
-    }
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.NavigableMap;
+
+public class ScheduledPriceUpdate implements ScheduledListener, OrderBookEventListener {
+    private Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
 
     private double price;
     @Override
-    public void handleScheduledTradeEvent(AggTradeEvent aggTradeEvent) {
-        this.price = Double.parseDouble(aggTradeEvent.getPrice());
-        System.out.println(this.price);
+    public void handleScheduledEvent() {
+        System.out.println(depthCache.get("ASKS").lastEntry().getKey() );
+    }
+
+    @Override
+    public void handleOrderBookEvent(Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache) {
+        this.depthCache = depthCache;
     }
 
 //    public static void main(String[] args) {

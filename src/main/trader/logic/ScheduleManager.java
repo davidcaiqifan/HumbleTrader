@@ -1,7 +1,7 @@
 package logic;
 
 import com.binance.api.client.domain.event.AggTradeEvent;
-import logic.listeners.ScheduledTradeEventListener;
+import logic.listeners.ScheduledListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,28 +12,23 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class ScheduleManager {
-    private AggTradeEvent lastTradeEvent;
-    private Map<Integer, List<ScheduledTradeEventListener>> scheduleListeners = new HashMap<>();
+    private Map<Integer, List<ScheduledListener>> scheduleListeners = new HashMap<>();
     private ScheduledExecutorService executor;
 
     public ScheduleManager() {
         executor = Executors.newScheduledThreadPool(4);
     }
 
-    public void updateTradeEvent(AggTradeEvent tradeEvent) {
-        this.lastTradeEvent = tradeEvent;
-    }
-
-    public void periodicCallback(int interval, ScheduledTradeEventListener scheduledTradeEventListener) {
+    public void periodicCallback(int interval, ScheduledListener scheduledListener) {
         if (scheduleListeners.containsKey(interval)) {
-            scheduleListeners.get(interval).add(scheduledTradeEventListener);
+            scheduleListeners.get(interval).add(scheduledListener);
         } else {
             scheduleListeners.put(interval, new ArrayList<>());
-            scheduleListeners.get(interval).add(scheduledTradeEventListener);
+            scheduleListeners.get(interval).add(scheduledListener);
         }
         executor.scheduleAtFixedRate(() -> {
-            for (ScheduledTradeEventListener tl : scheduleListeners.get(interval))
-                tl.handleScheduledTradeEvent(this.lastTradeEvent);
-        }, 0, interval, TimeUnit.MILLISECONDS);
+            for (ScheduledListener tl : scheduleListeners.get(interval))
+                tl.handleScheduledEvent();
+        }, 200, interval, TimeUnit.MILLISECONDS);
     }
 }

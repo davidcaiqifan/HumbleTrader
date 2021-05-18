@@ -32,15 +32,15 @@ public class UiManager extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("JavaFX Realtime Chart Demo");
-        EventManager eventManager = new EventManager(new MarketDataManager());
+        //EventManager eventManager = new EventManager(new MarketDataManager());
         this.priceGenerator = new ScheduledPriceUpdate();
-        Thread t1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                eventManager.getScheduleManager().periodicCallback(100, priceGenerator);
-            }
-        });
-        t1.start();
+//        Thread t1 = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                eventManager.getScheduleManager().periodicCallback(100, priceGenerator);
+//            }
+//        });
+        //t1.start();
         //priceGenerator = new OrderBookManager(eventManager);
 
         //defining the axes
@@ -86,14 +86,14 @@ public class UiManager extends Application {
 
         // put dummy data onto graph per second
         scheduledExecutorServiceBid.scheduleAtFixedRate(() -> {
-            Double price = priceGenerator.getPrice();
-            System.out.println(price);
+            //Double price = priceGenerator.getPrice();
+            //System.out.println(price);
             // Update the chart
             Platform.runLater(() -> {
                 // get current time
                 Date now = new Date();
                 // put random number with current time
-                seriesBid.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price));
+                //seriesBid.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price));
 
                 if (seriesBid.getData().size() > WINDOW_SIZE)
                     seriesBid.getData().remove(0);

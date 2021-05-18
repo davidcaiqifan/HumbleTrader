@@ -4,7 +4,7 @@ import com.binance.api.client.domain.event.DepthEvent;
 import com.binance.api.client.domain.market.OrderBook;
 import com.binance.api.client.domain.market.OrderBookEntry;
 import logic.BinanceGateway;
-import model.Event;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class OrderBookManager implements StatsManager {
@@ -21,12 +23,18 @@ public class OrderBookManager implements StatsManager {
     private long lastUpdateId;
     private Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
     private BinanceGateway binanceGateway;
-    private LinkedBlockingDeque<Event> depthEventQueue;
+    private LinkedBlockingDeque<Map<String, NavigableMap<BigDecimal, BigDecimal>>> buffer;
+    //private CircularFifoQueue<Map<String, NavigableMap<BigDecimal, BigDecimal>>> buffer;
 
     public OrderBookManager(BinanceGateway binanceGateway) {
         this.binanceGateway = binanceGateway;
+//        this.buffer = new CircularFifoQueue<>();
+        this.buffer = new LinkedBlockingDeque<>();
         initializeDepthCache();
-        startDepthEventStreaming();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(() -> {
+            startDepthEventStreaming();
+        });
     }
 
     /**
@@ -62,6 +70,7 @@ public class OrderBookManager implements StatsManager {
                 lastUpdateId = newEvent.getFinalUpdateId();
                 updateOrderBook(getAsks(), newEvent.getAsks());
                 updateOrderBook(getBids(), newEvent.getBids());
+                this.buffer.add(this.depthCache);
                 //printDepthCache();
             } catch(InterruptedException e) {
                 System.out.println(e);
@@ -112,8 +121,10 @@ public class OrderBookManager implements StatsManager {
     /**
      * @return a depth cache, containing two keys (ASKs and BIDs), and for each, an ordered list of book entries.
      */
-    public Map<String, NavigableMap<BigDecimal, BigDecimal>> getDepthCache() {
-        return depthCache;
+    public Map<String, NavigableMap<BigDecimal, BigDecimal>> getDepthCache() throws InterruptedException{
+//        while(this.buffer.isEmpty()) {}
+//        System.out.println("hi");
+        return this.buffer.take();
     }
 
     /**
@@ -136,7 +147,7 @@ public class OrderBookManager implements StatsManager {
         return depthCacheEntry.getKey().toPlainString() + " / " + depthCacheEntry.getValue();
     }
 
-//    public static void main(String[] args) {
-//        new OrderBookManager(new EventManager());
-//    }
+    public static void main(String[] args) {
+        new OrderBookManager(new BinanceGateway("BTCUSDT"));
+    }
 }

@@ -1,5 +1,9 @@
 package logic.listeners;
 
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.NavigableMap;
+
 public interface OrderBookEventListener {
-    void handleOrderBookEvent();
+    void handleOrderBookEvent(Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache);
 }

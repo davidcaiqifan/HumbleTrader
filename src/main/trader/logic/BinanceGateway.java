@@ -7,9 +7,12 @@ import com.binance.api.client.domain.event.AggTradeEvent;
 import com.binance.api.client.domain.event.DepthEvent;
 import com.binance.api.client.domain.market.AggTrade;
 import com.binance.api.client.domain.market.OrderBook;
+import customWebSockets.BinanceCustomWebSocketClientImpl;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
+
+import static com.binance.api.client.impl.BinanceApiServiceGenerator.getSharedClient;
 
 public class BinanceGateway {
     private String symbol;
@@ -54,8 +57,7 @@ public class BinanceGateway {
     }
 
     public void subscribeOrderBookEvents() {
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance();
-        BinanceApiWebSocketClient client = factory.newWebSocketClient();
+        BinanceCustomWebSocketClientImpl client = new BinanceCustomWebSocketClientImpl(getSharedClient());
         client.onDepthEvent(symbol.toLowerCase(), response -> {
             this.orderBookEventQueue.add(response);
         });
