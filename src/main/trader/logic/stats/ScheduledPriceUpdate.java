@@ -10,7 +10,6 @@ import java.util.NavigableMap;
 
 public class ScheduledPriceUpdate implements ScheduledListener, OrderBookEventListener {
     private Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
-
     private double price;
     @Override
     public void handleScheduledEvent() {

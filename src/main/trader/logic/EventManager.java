@@ -19,7 +19,7 @@ public class EventManager {
     private ScheduleManager scheduleManager;
     private List<OrderBookEventListener> orderBookEventListeners = new ArrayList<>();
     private List<TradeEventListener> tradeEventListeners = new ArrayList<>();
-
+    
     public EventManager(MarketDataManager marketDataManager) {
         this.marketDataManager = marketDataManager;
         this.scheduleManager = new ScheduleManager();
@@ -49,7 +49,6 @@ public class EventManager {
     }
 
     public void startPublishingOrderBookEvents() {
-
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
             while(true) {

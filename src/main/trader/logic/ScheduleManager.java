@@ -1,6 +1,5 @@
 package logic;
 
-import com.binance.api.client.domain.event.AggTradeEvent;
 import logic.listeners.ScheduledListener;
 
 import java.util.ArrayList;
