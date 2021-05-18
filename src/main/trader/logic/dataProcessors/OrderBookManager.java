@@ -1,10 +1,8 @@
-package logic.stats;
+package logic.dataProcessors;
 
 import com.binance.api.client.domain.event.DepthEvent;
 import com.binance.api.client.domain.market.OrderBook;
 import com.binance.api.client.domain.market.OrderBookEntry;
-import logic.BinanceGateway;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.math.BigDecimal;
 import java.util.Comparator;

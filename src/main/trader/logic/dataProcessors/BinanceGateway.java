@@ -1,4 +1,4 @@
-package logic;
+package logic.dataProcessors;
 
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;

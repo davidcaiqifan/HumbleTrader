@@ -1,4 +1,4 @@
-package logic.stats;
+package logic.dataProcessors;
 
 public interface StatsManager {
 }

@@ -8,10 +8,11 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import logic.MarketDataManager;
 import logic.EventManager;
-import logic.stats.ScheduledPriceUpdate;
-import logic.stats.TradeManager;
+import logic.ScheduleManager;
+import logic.dataProcessors.MarketDataManager;
+import logic.listeners.ScheduledPriceUpdate;
+import logic.dataProcessors.TradeManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,7 +32,15 @@ public class UiManager extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("JavaFX Realtime Chart Demo");
+        primaryStage.setTitle("Weighted Average Prices");
+        ScheduleManager sched;
+        EventManager eventManager = new EventManager(new MarketDataManager("BTCUSDT"));
+        try {
+            sched = new ScheduleManager(eventManager);
+            sched.periodicCallback(1000, new ScheduledPriceUpdate());
+        } catch (Exception e) {
+            System.out.println(e);
+        }
         //EventManager eventManager = new EventManager(new MarketDataManager());
         this.priceGenerator = new ScheduledPriceUpdate();
 //        Thread t1 = new Thread(new Runnable() {

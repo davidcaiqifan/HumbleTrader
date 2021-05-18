@@ -2,27 +2,41 @@ package logic;
 
 import com.binance.api.client.domain.event.AggTradeEvent;
 import logic.listeners.OrderBookEventListener;
-import logic.listeners.ScheduledListener;
+import logic.listeners.ScheduledPriceUpdate;
 import logic.listeners.TradeEventListener;
-import logic.stats.ScheduledPriceUpdate;
+import logic.dataProcessors.MarketDataManager;
+import org.apache.log4j.BasicConfigurator;
+import org.quartz.Job;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util .Map;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.quartz.JobBuilder.newJob;
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
+
 public class EventManager {
     private MarketDataManager marketDataManager;
     private ScheduleManager scheduleManager;
-    private List<OrderBookEventListener> orderBookEventListeners = new ArrayList<>();
+    private Map<Integer, List<OrderBookEventListener>> orderBookEventListeners = new HashMap<>();
     private List<TradeEventListener> tradeEventListeners = new ArrayList<>();
-    
+    public Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
+
     public EventManager(MarketDataManager marketDataManager) {
         this.marketDataManager = marketDataManager;
-        this.scheduleManager = new ScheduleManager();
+        //this.scheduleManager = new ScheduleManager();
+        startPublishingOrderBookEvents();
     }
 
 
@@ -36,48 +50,51 @@ public class EventManager {
     /**
      * Add order book event listeners.
      */
-    public void addOrderBookEventListener(OrderBookEventListener toAdd) {
-        orderBookEventListeners.add(toAdd);
+    public void addOrderBookEventListener(OrderBookEventListener toAdd, int interval) {
+        if(!orderBookEventListeners.containsKey(interval)) {
+            orderBookEventListeners.put(interval, new ArrayList<>());
+        }
+        orderBookEventListeners.get(interval).add(toAdd);
     }
 
     /**
      * Add scheduled order book event listeners.
      */
-    public void addScheduledOrderBookEventListener(OrderBookEventListener toAdd, int interval) {
-        orderBookEventListeners.add(toAdd);
-        this.scheduleManager.periodicCallback(interval, (ScheduledListener)toAdd);
-    }
-
+//    public void addScheduledOrderBookEventListener(OrderBookEventListener toAdd, int interval) throws SchedulerException{
+//        orderBookEventListeners.add(toAdd);
+//        ScheduledEvent se = (ScheduledEvent)toAdd;
+//        this.scheduleManager.periodicCallback(interval, se.getJob());
+//    }
     public void startPublishingOrderBookEvents() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
-            while(true) {
+            while (true) {
                 Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
                 depthCache = this.marketDataManager.getOrderBookManager().getDepthCache();
-                publishOrderBookEvent(depthCache);
+                this.depthCache = depthCache;
+                //publishOrderBookEvent(depthCache);
                 //System.out.println("BEST ASK: " + toDepthCacheEntryString(depthCache.get("ASKS").lastEntry()));
                 //System.out.println("BEST BID: " + toDepthCacheEntryString(depthCache.get("BIDS").firstEntry()));
             }
         });
     }
 
-    public void publishTradeEvent(ScheduleManager scheduleManager, AggTradeEvent tradeEvent) {
-        // Notify everybody that may be interested.
-//        for (TradeEventListener tl : tradeEventlisteners)
+//    public void publishTradeEvent(ScheduleManager scheduleManager, AggTradeEvent tradeEvent) {
+//        // Notify everybody that may be interested.
+//       for (TradeEventListener tl : tradeEventlisteners)
 //            tl.handleTradeEvent();
-        //scheduleManager.updateTradeEvent(tradeEvent);
-    }
+//        //scheduleManager.updateTradeEvent(tradeEvent);
+//    }
 
-    public void publishOrderBookEvent(Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache) {
+    public void publishOrderBookEvent(int interval) {
         // Notify everybody that may be interested.
-        for (OrderBookEventListener ol : this.orderBookEventListeners)
+        for (OrderBookEventListener ol : this.orderBookEventListeners.get(interval))
             ol.handleOrderBookEvent(depthCache);
-        //scheduleManager.updateTradeEvent(tradeEvent);
     }
 
-    public ScheduleManager getScheduleManager() {
-        return scheduleManager;
-    }
+//    public ScheduleManager getScheduleManager() {
+//        return scheduleManager;
+//    }
 
 
     /**
@@ -88,11 +105,20 @@ public class EventManager {
     }
 
     public static void main(String[] args) {
-        EventManager eventManager = new EventManager(new MarketDataManager("BTCUSDT"));
-        ScheduledPriceUpdate generator = new ScheduledPriceUpdate();
-        //idk why but must be done in this order publish -> add to observer list
-        eventManager.startPublishingOrderBookEvents();
-        eventManager.addScheduledOrderBookEventListener(generator, 800);
+//        BasicConfigurator.configure();
+//        try {
+//        EventManager eventManager = new EventManager(new MarketDataManager("BTCUSDT"));
+//        ScheduleManager scheduleManager;
+//            //scheduleManager = new ScheduleManager(eventManager);
+//            OrderBookEventListener listener = new ScheduledPriceUpdate();
+//            eventManager.addOrderBookEventListener(listener);
+//            eventManager.scheduleManager.periodicCallback(500);
+//        } catch (Exception e) {
+//            System.out.println(e);
+//        }
+//        ScheduledPriceUpdate generator = new ScheduledPriceUpdate();
+//        //idk why but must be done in this order publish -> add to observer list
+//        eventManager.addScheduledOrderBookEventListener(generator, 800);
 //        eventManager.startPublishingOrderBookEvents();
 //        eventManager.addOrderBookEventListener(generator);
 //        eventManager.scheduleManager.periodicCallback(800, generator);

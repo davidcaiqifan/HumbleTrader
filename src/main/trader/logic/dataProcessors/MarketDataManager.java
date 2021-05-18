@@ -1,7 +1,4 @@
-package logic;
-
-import logic.stats.OrderBookManager;
-import logic.stats.TradeManager;
+package logic.dataProcessors;
 
 public class MarketDataManager {
     private BinanceGateway binanceGateway;

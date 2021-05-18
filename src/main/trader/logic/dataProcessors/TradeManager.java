@@ -1,8 +1,7 @@
-package logic.stats;
+package logic.dataProcessors;
 
 import com.binance.api.client.domain.event.AggTradeEvent;
 import com.binance.api.client.domain.market.AggTrade;
-import logic.BinanceGateway;
 
 import java.util.HashMap;
 import java.util.List;
