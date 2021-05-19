@@ -26,12 +26,12 @@ public class ScheduleManager {
 
     public void periodicCallback(int interval, String reference) throws SchedulerException {
         JobDetail jobDetail = JobBuilder.newJob(ScheduleJob.class)
-                .withIdentity("job1", "group1") // name "priceJob", group "group1"
+                //.withIdentity("job1", "group1") // name "priceJob", group "group1"
                 .usingJobData("reference", reference)
                 .build();
         jobDetail.getJobDataMap().put("eventManager", this.eventManager);
         Trigger trigger = newTrigger()
-                .withIdentity("trigger1", "group1")
+                //.withIdentity("trigger1", "group1")
                 .startNow()
                 .withSchedule(simpleSchedule()
                         .withIntervalInMilliseconds(interval)

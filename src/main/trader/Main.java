@@ -35,7 +35,7 @@ public class Main {
             ExecutorService executor2 = Executors.newSingleThreadExecutor();
             executor2.submit(() -> {
                 MovingAverageCrossover movingAverageCrossover
-                        = new MovingAverageCrossover(1000, 2000, 10, scheduleManager);
+                        = new MovingAverageCrossover(5000, 10000, 10, scheduleManager);
                 eventManager.addOrderBookEventListener(movingAverageCrossover);
             });
 
