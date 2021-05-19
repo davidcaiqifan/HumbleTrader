@@ -3,6 +3,8 @@ package logic.dataProcessors;
 import com.binance.api.client.domain.event.DepthEvent;
 import com.binance.api.client.domain.market.OrderBook;
 import com.binance.api.client.domain.market.OrderBookEntry;
+import logic.EventManager;
+import model.OrderBookCache;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -20,9 +22,7 @@ public class OrderBookManager {
     private static final String ASKS  = "ASKS";
     private long lastUpdateId;
     private Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
-    private BinanceGateway binanceGateway;
-    private LinkedBlockingDeque<Map<String, NavigableMap<BigDecimal, BigDecimal>>> buffer;
-    //private CircularFifoQueue<Map<String, NavigableMap<BigDecimal, BigDecimal>>> buffer;
+    private EventManager eventManager;
 
     public OrderBookManager(EventManager eventManager, OrderBook orderBook) {
         this.eventManager = eventManager;
