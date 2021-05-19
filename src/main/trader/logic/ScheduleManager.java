@@ -1,7 +1,6 @@
 package logic;
 
-import logic.listeners.OrderBookEventListener;
-import logic.schedulers.ScheduleEvent;
+import logic.schedulers.ScheduleJob;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
@@ -22,15 +21,15 @@ public class ScheduleManager {
         SchedulerFactory sf = new StdSchedulerFactory();
         this.sched = sf.getScheduler();
         this.eventManager = eventManager;
+        sched.start();
     }
 
-    public void periodicCallback(int interval, OrderBookEventListener orderBookEventListener) throws SchedulerException {
-        this.eventManager.addOrderBookEventListener(orderBookEventListener, interval);
-        JobDetail jobDetail = JobBuilder.newJob(ScheduleEvent.class)
+    public void periodicCallback(int interval, String reference) throws SchedulerException {
+        JobDetail jobDetail = JobBuilder.newJob(ScheduleJob.class)
                 .withIdentity("job1", "group1") // name "priceJob", group "group1"
+                .usingJobData("reference", reference)
                 .build();
         jobDetail.getJobDataMap().put("eventManager", this.eventManager);
-        jobDetail.getJobDataMap().put("interval", interval);
         Trigger trigger = newTrigger()
                 .withIdentity("trigger1", "group1")
                 .startNow()
@@ -39,7 +38,6 @@ public class ScheduleManager {
                         .repeatForever())
                 .build();
         sched.scheduleJob(jobDetail, trigger);
-        sched.start();
     }
 
     public Scheduler getSched() {

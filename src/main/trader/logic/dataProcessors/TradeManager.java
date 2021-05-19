@@ -18,12 +18,12 @@ public class TradeManager {
     private BinanceGateway binanceGateway;
     private long lastTradeId;
     public TradeManager(BinanceGateway binanceGateway) {
-        this.binanceGateway = binanceGateway;
-        initializeAggTradesCache();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.submit(() -> {
-            startAggTradesEventStreaming();
-        });
+//        this.binanceGateway = binanceGateway;
+//        initializeAggTradesCache();
+//        ExecutorService executor = Executors.newSingleThreadExecutor();
+//        executor.submit(() -> {
+//            startAggTradesEventStreaming();
+//        });
 
     }
 
@@ -42,32 +42,32 @@ public class TradeManager {
     /**
      * Begins streaming of agg trades events.
      */
-    private void startAggTradesEventStreaming() {
-        this.binanceGateway.subscribeTradeEvents();
-        while(true) {
-            try {
-                AggTradeEvent response = this.binanceGateway.getTradeEvent();
-                Long aggregatedTradeId = response.getAggregatedTradeId();
-                AggTrade updateAggTrade = aggTradesCache.get(aggregatedTradeId);
-                if (updateAggTrade == null) {
-                    // new agg trade
-                    updateAggTrade = new AggTrade();
-                }
-                updateAggTrade.setAggregatedTradeId(aggregatedTradeId);
-                updateAggTrade.setPrice(response.getPrice());
-                updateAggTrade.setQuantity(response.getQuantity());
-                updateAggTrade.setFirstBreakdownTradeId(response.getFirstBreakdownTradeId());
-                updateAggTrade.setLastBreakdownTradeId(response.getLastBreakdownTradeId());
-                updateAggTrade.setBuyerMaker(response.isBuyerMaker());
-                lastTradeId = aggregatedTradeId;
-                // Store the updated agg trade in the cache
-                aggTradesCache.put(aggregatedTradeId, updateAggTrade);
-                //System.out.println(updateAggTrade);
-            } catch(InterruptedException e) {
-                System.out.println(e);
-            }
-        }
-    }
+//    private void startAggTradesEventStreaming() {
+//        this.binanceGateway.subscribeTradeEvents();
+//        while(true) {
+//            try {
+//                AggTradeEvent response = this.binanceGateway.getTradeEvent();
+//                Long aggregatedTradeId = response.getAggregatedTradeId();
+//                AggTrade updateAggTrade = aggTradesCache.get(aggregatedTradeId);
+//                if (updateAggTrade == null) {
+//                    // new agg trade
+//                    updateAggTrade = new AggTrade();
+//                }
+//                updateAggTrade.setAggregatedTradeId(aggregatedTradeId);
+//                updateAggTrade.setPrice(response.getPrice());
+//                updateAggTrade.setQuantity(response.getQuantity());
+//                updateAggTrade.setFirstBreakdownTradeId(response.getFirstBreakdownTradeId());
+//                updateAggTrade.setLastBreakdownTradeId(response.getLastBreakdownTradeId());
+//                updateAggTrade.setBuyerMaker(response.isBuyerMaker());
+//                lastTradeId = aggregatedTradeId;
+//                // Store the updated agg trade in the cache
+//                aggTradesCache.put(aggregatedTradeId, updateAggTrade);
+//                //System.out.println(updateAggTrade);
+//            } catch(InterruptedException e) {
+//                System.out.println(e);
+//            }
+//        }
+//    }
     /**
      * @return an aggTrades cache, containing the aggregated trade id as the key,
      * and the agg trade data as the value.

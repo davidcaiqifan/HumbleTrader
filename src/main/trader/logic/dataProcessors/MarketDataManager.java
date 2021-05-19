@@ -8,8 +8,10 @@ public class MarketDataManager {
     private TradeManager tradeManager;
     public MarketDataManager(String symbol) {
         this.binanceGateway = new BinanceGateway(symbol);
-        this.orderBookManager = new OrderBookManager(this.binanceGateway);
-        this.tradeManager = new TradeManager(this.binanceGateway);
+        this.eventManager = eventManager;
+        this.orderBookManager = new OrderBookManager(eventManager, binanceGateway.getOrderBookSnapshot());
+        //this.tradeManager = new TradeManager(this.binanceGateway);
+        startOrderBookStreaming();
     }
 
     public OrderBookManager getOrderBookManager() {
@@ -18,5 +20,9 @@ public class MarketDataManager {
 
     public TradeManager getTradeManager() {
         return tradeManager;
+    }
+
+    public void startOrderBookStreaming() {
+        this.binanceGateway.subscribeOrderBookEvents(this.orderBookManager);
     }
 }

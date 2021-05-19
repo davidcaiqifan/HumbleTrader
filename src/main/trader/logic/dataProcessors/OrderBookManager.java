@@ -24,23 +24,15 @@ public class OrderBookManager {
     private LinkedBlockingDeque<Map<String, NavigableMap<BigDecimal, BigDecimal>>> buffer;
     //private CircularFifoQueue<Map<String, NavigableMap<BigDecimal, BigDecimal>>> buffer;
 
-    public OrderBookManager(BinanceGateway binanceGateway) {
-        this.binanceGateway = binanceGateway;
-//        this.buffer = new CircularFifoQueue<>();
-        this.buffer = new LinkedBlockingDeque<>();
-        initializeDepthCache();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.submit(() -> {
-            startDepthEventStreaming();
-        });
+    public OrderBookManager(EventManager eventManager, OrderBook orderBook) {
+        this.eventManager = eventManager;
+        initializeDepthCache(orderBook);
     }
 
     /**
      * Initializes the depth cache by using the REST API.
      */
-    private void initializeDepthCache() {
-        OrderBook orderBook = this.binanceGateway.getOrderBookSnapshot();
-
+    private void initializeDepthCache(OrderBook orderBook) {
         this.depthCache = new ConcurrentHashMap<>();
         this.lastUpdateId = orderBook.getLastUpdateId();
 
@@ -57,23 +49,12 @@ public class OrderBookManager {
         depthCache.put(BIDS, bids);
     }
 
-    /**
-     * Begins streaming of depth events.
-     */
-    private void startDepthEventStreaming() {
-        this.binanceGateway.subscribeOrderBookEvents();
-        while(true) {
-            try {
-                DepthEvent newEvent = this.binanceGateway.getOrderBookEvent();
-                lastUpdateId = newEvent.getFinalUpdateId();
-                updateOrderBook(getAsks(), newEvent.getAsks());
-                updateOrderBook(getBids(), newEvent.getBids());
-                this.buffer.add(this.depthCache);
-                //printDepthCache();
-            } catch(InterruptedException e) {
-                System.out.println(e);
-            }
-        }
+    public void handleOrderBookEvent(DepthEvent depthEvent) {
+        this.lastUpdateId = depthEvent.getFinalUpdateId();
+        updateOrderBook(getAsks(), depthEvent.getAsks());
+        updateOrderBook(getBids(), depthEvent.getBids());
+        eventManager.publishOrderBookEvent(new OrderBookCache(this.depthCache));
+        //printDepthCache();
     }
 
     /**
@@ -120,9 +101,7 @@ public class OrderBookManager {
      * @return a depth cache, containing two keys (ASKs and BIDs), and for each, an ordered list of book entries.
      */
     public Map<String, NavigableMap<BigDecimal, BigDecimal>> getDepthCache() throws InterruptedException{
-//        while(this.buffer.isEmpty()) {}
-//        System.out.println("hi");
-        return this.buffer.take();
+        return this.depthCache;
     }
 
     /**
@@ -145,7 +124,4 @@ public class OrderBookManager {
         return depthCacheEntry.getKey().toPlainString() + " / " + depthCacheEntry.getValue();
     }
 
-    public static void main(String[] args) {
-        new OrderBookManager(new BinanceGateway("BTCUSDT"));
-    }
 }

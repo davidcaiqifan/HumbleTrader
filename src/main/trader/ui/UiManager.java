@@ -8,12 +8,9 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import logic.EventManager;
 import logic.ScheduleManager;
-import logic.dataProcessors.MarketDataManager;
 import logic.listeners.ScheduledPriceManager;
 import logic.dataProcessors.TradeManager;
-import logic.listeners.SimpleMovingAverage;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,18 +32,18 @@ public class UiManager extends Application {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Weighted Average Prices");
         ScheduleManager sched;
-        EventManager eventManager = new EventManager(new MarketDataManager("DOGEUSDT"));
-        SimpleMovingAverage sma1 = new SimpleMovingAverage(1000);
-        SimpleMovingAverage sma2 = new SimpleMovingAverage(10000);
-        try {
-            sched = new ScheduleManager(eventManager);
-            sched.periodicCallback(100, sma1);
-            sched.periodicCallback(100, sma2);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+//        EventManager eventManager = new EventManager(new MarketDataManager("DOGEUSDT"));
+//        SimpleMovingAverage sma1 = new SimpleMovingAverage(1000);
+//        SimpleMovingAverage sma2 = new SimpleMovingAverage(10000);
+//        try {
+//            sched = new ScheduleManager(eventManager);
+//            sched.periodicCallback(100, sma1);
+//            sched.periodicCallback(100, sma2);
+//        } catch (Exception e) {
+//            System.out.println(e);
+//        }
         //EventManager eventManager = new EventManager(new MarketDataManager());
-        this.priceGenerator = new ScheduledPriceManager();
+        //this.priceGenerator = new ScheduledPriceManager();
 //        Thread t1 = new Thread(new Runnable() {
 //            @Override
 //            public void run() {
@@ -99,14 +96,14 @@ public class UiManager extends Application {
 
         // put dummy data onto graph per second
         scheduledExecutorServiceSMA1.scheduleAtFixedRate(() -> {
-            Double price1 = sma1.getSma();
+            //Double price1 = sma1.getSma();
             //System.out.println(price);
             // Update the chart
             Platform.runLater(() -> {
                 // get current time
                 Date now = new Date();
                 // put random number with current time
-                seriesSMA1.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price1));
+                //seriesSMA1.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price1));
 
                 if (seriesSMA1.getData().size() > WINDOW_SIZE)
                     seriesSMA1.getData().remove(0);
@@ -119,14 +116,14 @@ public class UiManager extends Application {
 
         // put dummy data onto graph per second
         scheduledExecutorServiceSMA2.scheduleAtFixedRate(() -> {
-            Double price1 = sma2.getSma();
+            //Double price1 = sma2.getSma();
             //System.out.println(price);
             // Update the chart
             Platform.runLater(() -> {
                 // get current time
                 Date now = new Date();
                 // put random number with current time
-                seriesSMA2.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price1));
+                //seriesSMA2.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price1));
 
                 if (seriesSMA2.getData().size() > WINDOW_SIZE)
                     seriesSMA2.getData().remove(0);

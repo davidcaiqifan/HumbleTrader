@@ -18,62 +18,34 @@ public class BinanceGateway {
     private String symbol;
     private LinkedBlockingDeque<AggTradeEvent> tradeEventQueue;
     private LinkedBlockingDeque<DepthEvent> orderBookEventQueue;
+    private BinanceApiClientFactory factory;
+    private BinanceApiRestClient restClient;
+    private BinanceCustomWebSocketClientImpl webSocketClient;
+
     public BinanceGateway(String symbol) {
         this.symbol = symbol;
-        this.tradeEventQueue = new LinkedBlockingDeque<>();
-        this.orderBookEventQueue = new LinkedBlockingDeque<>();
+        this.factory = BinanceApiClientFactory.newInstance();
+        this.restClient = this.factory.newRestClient();
+        this.webSocketClient = new BinanceCustomWebSocketClientImpl(getSharedClient());
     }
     public OrderBook getOrderBookSnapshot() {
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance();
-        BinanceApiRestClient client = factory.newRestClient();
-        OrderBook orderBook = client.getOrderBook(this.symbol.toUpperCase(), 10);
+        OrderBook orderBook = restClient.getOrderBook(this.symbol.toUpperCase(), 10);
         return orderBook;
     };
 
     public List<AggTrade> getRecentTradeSnapshot() {
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance();
-        BinanceApiRestClient client = factory.newRestClient();
-        List<AggTrade> aggTrades = client.getAggTrades(this.symbol.toUpperCase());
+        List<AggTrade> aggTrades = restClient.getAggTrades(this.symbol.toUpperCase());
         return aggTrades;
     }
 
     public void subscribeTradeEvents() {
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance();
-        BinanceApiWebSocketClient client = factory.newWebSocketClient();
-        client.onAggTradeEvent(this.symbol.toLowerCase(), response -> {
-            tradeEventQueue.add(response);
+        webSocketClient.onAggTradeEvent(this.symbol.toLowerCase(), response -> {
         });
     }
 
-    /**
-     * Obtain trade event updates from websocket
-     */
-    public AggTradeEvent getTradeEvent() throws InterruptedException{
-        try {
-            return this.tradeEventQueue.take();
-        } catch(Exception e) {
-            throw e;
-        }
-    }
-
-    public void subscribeOrderBookEvents() {
-        BinanceCustomWebSocketClientImpl client = new BinanceCustomWebSocketClientImpl(getSharedClient());
-        client.onDepthEvent(symbol.toLowerCase(), response -> {
-            this.orderBookEventQueue.add(response);
+    public void subscribeOrderBookEvents(OrderBookManager orderBookManager) {
+        webSocketClient.onDepthEvent(symbol.toLowerCase(), response -> {
+            orderBookManager.handleOrderBookEvent(response);
         });
     }
-
-    /**
-     * Obtain order book event updates from websocket
-     */
-    public DepthEvent getOrderBookEvent() throws InterruptedException{
-        try {
-            return this.orderBookEventQueue.take();
-        } catch(Exception e) {
-            throw e;
-        }
-    }
-
-
-
 }
