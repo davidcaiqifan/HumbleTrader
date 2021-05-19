@@ -1,20 +1,25 @@
 package logic.listeners;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 
-public class ScheduledPriceUpdate implements OrderBookEventListener {
+public class ScheduledPriceManager implements OrderBookEventListener {
 
     private Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
+    private Map<Integer, List<PriceEventListener>> priceEventListeners = new HashMap<>();
+    private double price;
 
-    public ScheduledPriceUpdate() {
+    public ScheduledPriceManager() {
     }
 
     @Override
     public void handleOrderBookEvent(Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache) {
         this.depthCache = depthCache;
         //System.out.println(this.depthCache.get("ASKS").lastEntry().getKey());
+        this.price = calculateWeightedPrice();
         System.out.println(calculateWeightedPrice());
     }
 
@@ -22,15 +27,11 @@ public class ScheduledPriceUpdate implements OrderBookEventListener {
         return depthCache;
     }
 
-//    public static void main(String[] args) {
-//        EventManager eventManager = new EventManager(new MarketDataManager());
-//        ScheduledPriceUpdate priceGenerator = new ScheduledPriceUpdate();
-//        eventManager.getScheduleManager().periodicCallback(100, priceGenerator);
-//        while(true) {
-//            double price = priceGenerator.getPrice();
-//            System.out.println(price);
-//        }
-//    }
+    public void publishPriceEvent(int interval) {
+        // Notify everybody that may be interested.
+        for (PriceEventListener pl : this.priceEventListeners.get(interval))
+            pl.handlePriceEvent(this.price);
+    }
 
     public double calculateWeightedPrice() {
         NavigableMap<BigDecimal, BigDecimal> asks = this.depthCache.get("ASKS");

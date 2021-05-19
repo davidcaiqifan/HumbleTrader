@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 
-public class OrderBookManager implements StatsManager {
+public class OrderBookManager {
     private static final String BIDS  = "BIDS";
     private static final String ASKS  = "ASKS";
     private long lastUpdateId;

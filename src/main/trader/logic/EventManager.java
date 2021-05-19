@@ -1,17 +1,8 @@
 package logic;
 
-import com.binance.api.client.domain.event.AggTradeEvent;
 import logic.listeners.OrderBookEventListener;
-import logic.listeners.ScheduledPriceUpdate;
 import logic.listeners.TradeEventListener;
 import logic.dataProcessors.MarketDataManager;
-import org.apache.log4j.BasicConfigurator;
-import org.quartz.Job;
-import org.quartz.JobDetail;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -23,8 +14,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.quartz.JobBuilder.newJob;
-import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
-import static org.quartz.TriggerBuilder.newTrigger;
 
 public class EventManager {
     private MarketDataManager marketDataManager;

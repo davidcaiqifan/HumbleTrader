@@ -1,5 +1,7 @@
 package logic.dataProcessors;
 
+import logic.EventManager;
+
 public class MarketDataManager {
     private BinanceGateway binanceGateway;
     private OrderBookManager orderBookManager;

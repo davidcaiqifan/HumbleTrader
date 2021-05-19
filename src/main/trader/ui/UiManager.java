@@ -11,8 +11,9 @@ import javafx.scene.chart.XYChart;
 import logic.EventManager;
 import logic.ScheduleManager;
 import logic.dataProcessors.MarketDataManager;
-import logic.listeners.ScheduledPriceUpdate;
+import logic.listeners.ScheduledPriceManager;
 import logic.dataProcessors.TradeManager;
+import logic.listeners.SimpleMovingAverage;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,10 +23,10 @@ import java.util.concurrent.TimeUnit;
 
 public class UiManager extends Application {
     final int WINDOW_SIZE = 100;
-    private ScheduledExecutorService scheduledExecutorServiceBid;
-    private ScheduledExecutorService scheduledExecutorServiceAsk;
+    private ScheduledExecutorService scheduledExecutorServiceSMA1;
+    private ScheduledExecutorService scheduledExecutorServiceSMA2;
     private TradeManager tradeGenerator;
-    private ScheduledPriceUpdate priceGenerator;
+    private ScheduledPriceManager priceGenerator;
     public static void main(String[] args) {
         launch(args);
     }
@@ -34,15 +35,18 @@ public class UiManager extends Application {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Weighted Average Prices");
         ScheduleManager sched;
-        EventManager eventManager = new EventManager(new MarketDataManager("BTCUSDT"));
+        EventManager eventManager = new EventManager(new MarketDataManager("DOGEUSDT"));
+        SimpleMovingAverage sma1 = new SimpleMovingAverage(1000);
+        SimpleMovingAverage sma2 = new SimpleMovingAverage(10000);
         try {
             sched = new ScheduleManager(eventManager);
-            sched.periodicCallback(1000, new ScheduledPriceUpdate());
+            sched.periodicCallback(100, sma1);
+            sched.periodicCallback(100, sma2);
         } catch (Exception e) {
             System.out.println(e);
         }
         //EventManager eventManager = new EventManager(new MarketDataManager());
-        this.priceGenerator = new ScheduledPriceUpdate();
+        this.priceGenerator = new ScheduledPriceManager();
 //        Thread t1 = new Thread(new Runnable() {
 //            @Override
 //            public void run() {
@@ -64,21 +68,21 @@ public class UiManager extends Application {
 
         //creating the line chart with two axis created above
         final LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
-        lineChart.setTitle("Realtime Price Chart");
+        lineChart.setTitle("SMA1");
         lineChart.setAnimated(false); // disable animations
         lineChart.autosize();
 
         //defining a series to display data
-        XYChart.Series<String, Number> seriesBid = new XYChart.Series<>();
-        seriesBid.setName("Trade price");
+        XYChart.Series<String, Number> seriesSMA1 = new XYChart.Series<>();
+        seriesSMA1.setName("SMA2 ");
 
         // add series to chart
-        lineChart.getData().add(seriesBid);
+        lineChart.getData().add(seriesSMA1);
 
-        //do the same for ask
-//        XYChart.Series<String, Number> seriesAsk = new XYChart.Series<>();
-//        seriesBid.setName("Data Series Ask");
-//        lineChart.getData().add(seriesAsk);
+        //do the same for sma2
+        XYChart.Series<String, Number> seriesSMA2 = new XYChart.Series<>();
+        seriesSMA2.setName("SMA2");
+        lineChart.getData().add(seriesSMA2);
 
         // setup scene
         Scene scene = new Scene(lineChart, 800, 600);
@@ -91,29 +95,49 @@ public class UiManager extends Application {
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
 
         // setup a scheduled executor to periodically put data into the chart
-        scheduledExecutorServiceBid = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorServiceSMA1 = Executors.newSingleThreadScheduledExecutor();
 
         // put dummy data onto graph per second
-        scheduledExecutorServiceBid.scheduleAtFixedRate(() -> {
-            //Double price = priceGenerator.getPrice();
+        scheduledExecutorServiceSMA1.scheduleAtFixedRate(() -> {
+            Double price1 = sma1.getSma();
             //System.out.println(price);
             // Update the chart
             Platform.runLater(() -> {
                 // get current time
                 Date now = new Date();
                 // put random number with current time
-                //seriesBid.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price));
+                seriesSMA1.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price1));
 
-                if (seriesBid.getData().size() > WINDOW_SIZE)
-                    seriesBid.getData().remove(0);
+                if (seriesSMA1.getData().size() > WINDOW_SIZE)
+                    seriesSMA1.getData().remove(0);
             });
         }, 0, 1, TimeUnit.SECONDS);
 
+
+        // setup a scheduled executor to periodically put data into the chart
+        scheduledExecutorServiceSMA2 = Executors.newSingleThreadScheduledExecutor();
+
+        // put dummy data onto graph per second
+        scheduledExecutorServiceSMA2.scheduleAtFixedRate(() -> {
+            Double price1 = sma2.getSma();
+            //System.out.println(price);
+            // Update the chart
+            Platform.runLater(() -> {
+                // get current time
+                Date now = new Date();
+                // put random number with current time
+                seriesSMA2.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price1));
+
+                if (seriesSMA2.getData().size() > WINDOW_SIZE)
+                    seriesSMA2.getData().remove(0);
+            });
+        }, 0, 1, TimeUnit.SECONDS);
     }
 
     @Override
     public void stop() throws Exception {
         super.stop();
-        scheduledExecutorServiceBid.shutdownNow();
+        scheduledExecutorServiceSMA1.shutdownNow();
+        scheduledExecutorServiceSMA2.shutdownNow();
     }
 }
