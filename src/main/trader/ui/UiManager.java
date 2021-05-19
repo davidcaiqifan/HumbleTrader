@@ -9,8 +9,6 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import logic.EventManager;
-import logic.stats.OrderBookManager;
-import logic.stats.TradeManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -23,8 +21,6 @@ public class UiManager extends Application {
     final int WINDOW_SIZE = 100;
     private ScheduledExecutorService scheduledExecutorServiceBid;
     private ScheduledExecutorService scheduledExecutorServiceAsk;
-    private OrderBookManager priceGenerator;
-    private TradeManager tradeGenerator;
     public static void main(String[] args) {
         launch(args);
     }
@@ -32,9 +28,6 @@ public class UiManager extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("JavaFX Realtime Chart Demo");
-        EventManager eventManager = new EventManager();
-        //priceGenerator = new OrderBookManager(eventManager);
-        tradeGenerator = new TradeManager(eventManager);
         //defining the axes
         final CategoryAxis xAxis = new CategoryAxis(); // we are gonna plot against time
         final NumberAxis yAxis = new NumberAxis();
@@ -80,14 +73,12 @@ public class UiManager extends Application {
         scheduledExecutorServiceBid.scheduleAtFixedRate(() -> {
             //System.out.println("BEST BID: " + priceGenerator.toDepthCacheEntryString(priceGenerator.getBestBid()));
             //Double price = priceGenerator.getBestBid().getKey().doubleValue();
-            Double aggTradePrice = tradeGenerator.getLastTradePrice();
-            System.out.println(aggTradePrice);
             // Update the chart
             Platform.runLater(() -> {
                 // get current time
                 Date now = new Date();
                 // put random number with current time
-                seriesBid.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), aggTradePrice));
+                //seriesBid.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), aggTradePrice));
 
                 if (seriesBid.getData().size() > WINDOW_SIZE)
                     seriesBid.getData().remove(0);
