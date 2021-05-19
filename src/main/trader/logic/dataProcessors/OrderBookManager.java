@@ -1,53 +1,38 @@
-package logic.stats;
+package logic.dataProcessors;
 
-import com.binance.api.client.BinanceApiClientFactory;
-import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.event.DepthEvent;
 import com.binance.api.client.domain.market.OrderBook;
 import com.binance.api.client.domain.market.OrderBookEntry;
 import logic.EventManager;
-import logic.eventproducers.EventProducer;
-import model.Event;
+import model.OrderBookCache;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 
-public class OrderBookManager implements StatsManager {
+public class OrderBookManager {
     private static final String BIDS  = "BIDS";
     private static final String ASKS  = "ASKS";
     private long lastUpdateId;
     private Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
     private EventManager eventManager;
-    private LinkedBlockingDeque<Event> depthEventQueue;
 
-    public OrderBookManager(EventManager eventManager) {
+    public OrderBookManager(EventManager eventManager, OrderBook orderBook) {
         this.eventManager = eventManager;
-        initializeDepthCache("BTCUSDT");
-        int index = eventManager.addEventStream("orderbook");
-        Thread t1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                startDepthEventStreaming(index);
-            }
-        });
-        t1.start();
+        initializeDepthCache(orderBook);
     }
 
     /**
      * Initializes the depth cache by using the REST API.
      */
-    private void initializeDepthCache(String symbol) {
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance();
-        BinanceApiRestClient client = factory.newRestClient();
-        OrderBook orderBook = client.getOrderBook(symbol.toUpperCase(), 10);
-
+    private void initializeDepthCache(OrderBook orderBook) {
         this.depthCache = new ConcurrentHashMap<>();
         this.lastUpdateId = orderBook.getLastUpdateId();
 
@@ -64,22 +49,12 @@ public class OrderBookManager implements StatsManager {
         depthCache.put(BIDS, bids);
     }
 
-    /**
-     * Begins streaming of depth events.
-     */
-    private void startDepthEventStreaming(int eventQueueIndex) {
-        this.depthEventQueue = eventManager.getEventQueue(eventQueueIndex);
-        while(true) {
-            try {
-                DepthEvent newEvent = this.depthEventQueue.take().getDepthEvent();
-                lastUpdateId = newEvent.getFinalUpdateId();
-                updateOrderBook(getAsks(), newEvent.getAsks());
-                updateOrderBook(getBids(), newEvent.getBids());
-                //printDepthCache();
-            } catch(InterruptedException e) {
-                System.out.println(e);
-            }
-        }
+    public void handleOrderBookEvent(DepthEvent depthEvent) {
+        this.lastUpdateId = depthEvent.getFinalUpdateId();
+        updateOrderBook(getAsks(), depthEvent.getAsks());
+        updateOrderBook(getBids(), depthEvent.getBids());
+        eventManager.publishOrderBookEvent(new OrderBookCache(this.depthCache));
+        //printDepthCache();
     }
 
     /**
@@ -125,8 +100,8 @@ public class OrderBookManager implements StatsManager {
     /**
      * @return a depth cache, containing two keys (ASKs and BIDs), and for each, an ordered list of book entries.
      */
-    public Map<String, NavigableMap<BigDecimal, BigDecimal>> getDepthCache() {
-        return depthCache;
+    public Map<String, NavigableMap<BigDecimal, BigDecimal>> getDepthCache() throws InterruptedException{
+        return this.depthCache;
     }
 
     /**
@@ -149,7 +124,4 @@ public class OrderBookManager implements StatsManager {
         return depthCacheEntry.getKey().toPlainString() + " / " + depthCacheEntry.getValue();
     }
 
-    public static void main(String[] args) {
-        new OrderBookManager(new EventManager());
-    }
 }
