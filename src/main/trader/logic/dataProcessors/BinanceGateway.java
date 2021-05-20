@@ -16,8 +16,6 @@ import static com.binance.api.client.impl.BinanceApiServiceGenerator.getSharedCl
 
 public class BinanceGateway {
     private String symbol;
-    private LinkedBlockingDeque<AggTradeEvent> tradeEventQueue;
-    private LinkedBlockingDeque<DepthEvent> orderBookEventQueue;
     private BinanceApiClientFactory factory;
     private BinanceApiRestClient restClient;
     private BinanceCustomWebSocketClientImpl webSocketClient;
