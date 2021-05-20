@@ -7,13 +7,18 @@ import logic.calc.SimpleMovingAverage;
 import logic.schedulers.ScheduleEvent;
 import model.OrderBookCache;
 
-public class MovingAverageCrossover implements OrderBookEventListener {
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
+public class MovingAverageCrossover implements OrderBookEventListener{
     private ScheduleManager scheduleManager;
-    private OrderBookCache orderBookCache;
+    private OrderBookCache localOrderBookCache;
     private double priceSample;
     private SimpleMovingAverage simpleMovingAverage1;
     private SimpleMovingAverage simpleMovingAverage2;
     private int signal = 0;
+    private ScheduledExecutorService ExecutorServiceOne;
+    private ScheduledExecutorService ExecutorServiceTwo;
 
     /**
      * Generates moving average crossover signal
@@ -27,6 +32,9 @@ public class MovingAverageCrossover implements OrderBookEventListener {
         this.scheduleManager.getEventManager().addOrderBookEventListener(this);
         this.simpleMovingAverage1 = new SimpleMovingAverage(window);
         this.simpleMovingAverage2 = new SimpleMovingAverage(window);
+        //Creates two threads for this listener
+        this.ExecutorServiceOne = Executors.newSingleThreadScheduledExecutor();
+        this.ExecutorServiceTwo = Executors.newSingleThreadScheduledExecutor();
         //initialize periodic callbacks
         try {
             scheduleManager.periodicCallback(period1, "sma1");
@@ -39,23 +47,31 @@ public class MovingAverageCrossover implements OrderBookEventListener {
 
     @Override
     public void handleOrderBookEvent(OrderBookCache orderBookCache) {
-        this.orderBookCache = orderBookCache;
-        this.priceSample = Math.calculateWeightedPrice(this.orderBookCache);
+        ExecutorServiceOne.submit(new Runnable() {
+            public void run() {
+                localOrderBookCache = orderBookCache;
+                priceSample = Math.calculateWeightedPrice(localOrderBookCache);
+            }
+        });
     }
 
     @Override
     public void handleScheduleEvent(ScheduleEvent scheduleEvent) {
-        String referenceTag = scheduleEvent.getReferenceTag();
-        if(referenceTag == "sma1") {
-            simpleMovingAverage1.updateSamples(this.priceSample);
-            //System.out.println("sma1 : " + simpleMovingAverage1.getSimpleMovingAverage());
-        } else if (referenceTag == "sma2"){
-            simpleMovingAverage2.updateSamples(this.priceSample);
-            //System.out.println("sma2 : " + simpleMovingAverage2.getSimpleMovingAverage());
-        } else if (referenceTag == "sigint") {
-            generateSignal();
-            printSignal();
-        }
+        ExecutorServiceTwo.submit(new Runnable() {
+            public void run() {
+                String referenceTag = scheduleEvent.getReferenceTag();
+                if(referenceTag == "sma1") {
+                    simpleMovingAverage1.updateSamples(priceSample);
+                    //System.out.println("sma1 : " + simpleMovingAverage1.getSimpleMovingAverage());
+                } else if (referenceTag == "sma2"){
+                    simpleMovingAverage2.updateSamples(priceSample);
+                    //System.out.println("sma2 : " + simpleMovingAverage2.getSimpleMovingAverage());
+                } else if (referenceTag == "sigint") {
+                    generateSignal();
+                    printSignal();
+                }
+            }
+        });
     }
 
     /**

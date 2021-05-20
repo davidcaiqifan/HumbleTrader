@@ -97,95 +97,87 @@ public class UiManager extends Application {
             // this is used to display time in HH:mm:ss format
             final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
 
-            ExecutorService executor3 = Executors.newSingleThreadExecutor();
-            executor3.submit(() -> {
-                MovingAverageCrossover movingAverageCrossover
-                        = new MovingAverageCrossover(1000, 2000, 10, 2000, scheduleManager);
-                // setup a scheduled executor to periodically put data into the chart
-                scheduledExecutorServiceSMA1 = Executors.newSingleThreadScheduledExecutor();
+            MovingAverageCrossover movingAverageCrossover
+                    = new MovingAverageCrossover(1000, 2000, 10, 2000, scheduleManager);
+            // setup a scheduled executor to periodically put data into the chart
+            scheduledExecutorServiceSMA1 = Executors.newSingleThreadScheduledExecutor();
 
-                // put dummy data onto graph per second
-                scheduledExecutorServiceSMA1.scheduleAtFixedRate(() -> {
-                    Double price1 = movingAverageCrossover.getFirstAverage();
-                    //System.out.println(price);
-                    // Update the chart
-                    Platform.runLater(() -> {
-                        // get current time
-                        Date now = new Date();
-                        // put random number with current time
-                        seriesSMA1.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price1));
+            // put dummy data onto graph per second
+            scheduledExecutorServiceSMA1.scheduleAtFixedRate(() -> {
+                Double price1 = movingAverageCrossover.getFirstAverage();
+                //System.out.println(price);
+                // Update the chart
+                Platform.runLater(() -> {
+                    // get current time
+                    Date now = new Date();
+                    // put random number with current time
+                    seriesSMA1.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price1));
 
-                        if (seriesSMA1.getData().size() > WINDOW_SIZE)
-                            seriesSMA1.getData().remove(0);
-                    });
-                }, 12, 1, TimeUnit.SECONDS);
+                    if (seriesSMA1.getData().size() > WINDOW_SIZE)
+                        seriesSMA1.getData().remove(0);
+                });
+            }, 12, 1, TimeUnit.SECONDS);
 
 
-                // setup a scheduled executor to periodically put data into the chart
-                scheduledExecutorServiceSMA2 = Executors.newSingleThreadScheduledExecutor();
+            // setup a scheduled executor to periodically put data into the chart
+            scheduledExecutorServiceSMA2 = Executors.newSingleThreadScheduledExecutor();
 
-                // put dummy data onto graph per second
+            // put dummy data onto graph per second
 
-                scheduledExecutorServiceSMA2.scheduleAtFixedRate(() -> {
-                    Double price2 = movingAverageCrossover.getSecondAverage();
-                    //System.out.println(price);
-                    // Update the chart
-                    Platform.runLater(() -> {
-                        // get current time
-                        Date now = new Date();
-                        // put random number with current time
-                        seriesSMA2.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price2));
+            scheduledExecutorServiceSMA2.scheduleAtFixedRate(() -> {
+                Double price2 = movingAverageCrossover.getSecondAverage();
+                //System.out.println(price);
+                // Update the chart
+                Platform.runLater(() -> {
+                    // get current time
+                    Date now = new Date();
+                    // put random number with current time
+                    seriesSMA2.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price2));
 
-                        if (seriesSMA2.getData().size() > WINDOW_SIZE)
-                            seriesSMA2.getData().remove(0);
-                    });
-                }, 24, 2, TimeUnit.SECONDS);
-            });
+                    if (seriesSMA2.getData().size() > WINDOW_SIZE)
+                        seriesSMA2.getData().remove(0);
+                });
+            }, 24, 2, TimeUnit.SECONDS);
 
-            ExecutorService executor2 = Executors.newSingleThreadExecutor();
-            executor2.submit(() -> {
-                PriceChecker priceChecker
-                        = new PriceChecker(1000, scheduleManager);
-                scheduledExecutorServicePrice = Executors.newSingleThreadScheduledExecutor();
+            PriceChecker priceChecker
+                    = new PriceChecker(1000, scheduleManager);
+            scheduledExecutorServicePrice = Executors.newSingleThreadScheduledExecutor();
 
-                // put dummy data onto graph per second
-                scheduledExecutorServicePrice.scheduleAtFixedRate(() -> {
-                    Double price = priceChecker.getPrice();
-                    // Update the chart
-                    Platform.runLater(() -> {
-                        // get current time
-                        Date now = new Date();
-                        // put random number with current time
-                        seriesPrice.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price));
+            // put dummy data onto graph per second
+            scheduledExecutorServicePrice.scheduleAtFixedRate(() -> {
+                Double price = priceChecker.getPrice();
+                // Update the chart
+                Platform.runLater(() -> {
+                    // get current time
+                    Date now = new Date();
+                    // put random number with current time
+                    seriesPrice.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price));
 
-                        if (seriesPrice.getData().size() > WINDOW_SIZE)
-                            seriesPrice.getData().remove(0);
-                    });
-                }, 5, 1, TimeUnit.SECONDS);
-            });
+                    if (seriesPrice.getData().size() > WINDOW_SIZE)
+                        seriesPrice.getData().remove(0);
+                });
+            }, 5, 1, TimeUnit.SECONDS);
 
-            ExecutorService executor4 = Executors.newSingleThreadExecutor();
-            executor4.submit(() -> {
-                RiskWatcher riskWatcher
-                        = new RiskWatcher(40350, scheduleManager);
-                scheduledExecutorServiceRisk = Executors.newSingleThreadScheduledExecutor();
+            RiskWatcher riskWatcher
+                    = new RiskWatcher(40350, scheduleManager);
+            scheduledExecutorServiceRisk = Executors.newSingleThreadScheduledExecutor();
 
-                // put dummy data onto graph per second
-                scheduledExecutorServiceRisk.scheduleAtFixedRate(() -> {
-                    Double threshold = riskWatcher.getThreshold();
-                    //System.out.println(price);
-                    // Update the chart
-                    Platform.runLater(() -> {
-                        // get current time
-                        Date now = new Date();
-                        // put random number with current time
-                        seriesRisk.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), threshold));
+            // put dummy data onto graph per second
+            scheduledExecutorServiceRisk.scheduleAtFixedRate(() -> {
+                Double threshold = riskWatcher.getThreshold();
+                //System.out.println(price);
+                // Update the chart
+                Platform.runLater(() -> {
+                    // get current time
+                    Date now = new Date();
+                    // put random number with current time
+                    seriesRisk.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), threshold));
 
-                        if (seriesRisk.getData().size() > WINDOW_SIZE)
-                            seriesRisk.getData().remove(0);
-                    });
-                }, 5, 1, TimeUnit.SECONDS);
-            });
+                    if (seriesRisk.getData().size() > WINDOW_SIZE)
+                        seriesRisk.getData().remove(0);
+                });
+            }, 5, 1, TimeUnit.SECONDS);
+
         } catch (Exception e) {
         }
     }

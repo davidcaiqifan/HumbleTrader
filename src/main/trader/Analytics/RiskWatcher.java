@@ -6,12 +6,17 @@ import logic.schedulers.ScheduleEvent;
 import logic.schedulers.ScheduleManager;
 import model.OrderBookCache;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 public class RiskWatcher implements OrderBookEventListener {
-    private OrderBookCache orderBookCache;
+    private OrderBookCache localOrderBookCache;
     private ScheduleManager scheduleManager;
     private int threshold;
     private double price;
     private int signal;
+    private ScheduledExecutorService ExecutorServiceOne;
+    private ScheduledExecutorService ExecutorServiceTwo;
 
     /**
      * Simple risk manager that generates message when threshold limit is reached
@@ -20,6 +25,8 @@ public class RiskWatcher implements OrderBookEventListener {
         this.scheduleManager = scheduleManager;
         this.threshold = threshold;
         this.scheduleManager.getEventManager().addOrderBookEventListener(this);
+        this.ExecutorServiceOne = Executors.newSingleThreadScheduledExecutor();
+        this.ExecutorServiceTwo = Executors.newSingleThreadScheduledExecutor();
         try {
             //we want risk manager to always have the latest price updates, so interval is 100ms(same as websocket interval)
             scheduleManager.periodicCallback(100, "riskwatcher");
@@ -31,27 +38,35 @@ public class RiskWatcher implements OrderBookEventListener {
 
     @Override
     public void handleOrderBookEvent(OrderBookCache orderBookCache) {
-        this.orderBookCache = orderBookCache;
-        this.price = Math.calculateWeightedPrice(this.orderBookCache);
+        ExecutorServiceOne.submit(new Runnable() {
+            public void run() {
+                localOrderBookCache = orderBookCache;
+                price = Math.calculateWeightedPrice(localOrderBookCache);
+            }
+        });
     }
 
     @Override
     public void handleScheduleEvent(ScheduleEvent scheduleEvent) {
-        String referenceTag = scheduleEvent.getReferenceTag();
-        if (referenceTag == "riskwatcher") {
-            if (this.price < this.threshold) {
-                this.signal = -1;
-            } else {
-                this.signal = 0;
-            }
+        ExecutorServiceTwo.submit(new Runnable() {
+            public void run() {
+                String referenceTag = scheduleEvent.getReferenceTag();
+                if (referenceTag == "riskwatcher") {
+                    if (price < threshold) {
+                        signal = -1;
+                    } else {
+                        signal = 0;
+                    }
 
-        } else if (referenceTag == "informuser") {
-            if (this.signal == -1) {
-                System.out.println("panik");
-            } else {
-                //System.out.println("kalm");
+                } else if (referenceTag == "informuser") {
+                    if (signal == -1) {
+                        System.out.println("panik");
+                    } else {
+                        //System.out.println("kalm");
+                    }
+                }
             }
-        }
+        });
     }
 
     public double getThreshold() {
