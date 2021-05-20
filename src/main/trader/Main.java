@@ -1,9 +1,9 @@
+import Analytics.PriceChecker;
 import logic.EventManager;
-import logic.ScheduleManager;
+import logic.schedulers.ScheduleManager;
 import logic.dataProcessors.MarketDataManager;
-import logic.listeners.MovingAverageCrossover;
+import Analytics.MovingAverageCrossover;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -35,9 +35,13 @@ public class Main {
             ExecutorService executor2 = Executors.newSingleThreadExecutor();
             executor2.submit(() -> {
                 MovingAverageCrossover movingAverageCrossover
-                        = new MovingAverageCrossover(5000, 10000, 10, scheduleManager);
-                eventManager.addOrderBookEventListener(movingAverageCrossover);
+                        = new MovingAverageCrossover(500, 1000, 10, 1000, scheduleManager);
             });
+//            ExecutorService executor3 = Executors.newSingleThreadExecutor();
+//            executor3.submit(() -> {
+//                PriceChecker priceChecker
+//                        = new PriceChecker(1000, scheduleManager);
+//            });
 
         } catch (Exception e) {
         }

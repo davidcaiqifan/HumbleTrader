@@ -1,5 +1,6 @@
-package logic;
+package logic.schedulers;
 
+import logic.EventManager;
 import logic.schedulers.ScheduleJob;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -15,6 +16,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 public class ScheduleManager {
     private Scheduler sched;
+
     private EventManager eventManager;
 
     public ScheduleManager(EventManager eventManager) throws SchedulerException {
@@ -38,6 +40,10 @@ public class ScheduleManager {
                         .repeatForever())
                 .build();
         sched.scheduleJob(jobDetail, trigger);
+    }
+
+    public EventManager getEventManager() {
+        return eventManager;
     }
 
     public Scheduler getSched() {
