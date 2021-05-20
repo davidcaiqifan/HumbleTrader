@@ -1,4 +1,5 @@
 import Analytics.PriceChecker;
+import Analytics.RiskWatcher;
 import logic.EventManager;
 import logic.schedulers.ScheduleManager;
 import logic.dataProcessors.MarketDataManager;
@@ -32,17 +33,21 @@ public class Main {
             //scheduleManager.periodicCallback(2000, "test1");
             //scheduleManager.periodicCallback(1000, "test");
 
-            ExecutorService executor2 = Executors.newSingleThreadExecutor();
-            executor2.submit(() -> {
-                MovingAverageCrossover movingAverageCrossover
-                        = new MovingAverageCrossover(500, 1000, 10, 1000, scheduleManager);
-            });
+//            ExecutorService executor2 = Executors.newSingleThreadExecutor();
+//            executor2.submit(() -> {
+//                MovingAverageCrossover movingAverageCrossover
+//                        = new MovingAverageCrossover(500, 1000, 10, 1000, scheduleManager);
+//            });
 //            ExecutorService executor3 = Executors.newSingleThreadExecutor();
 //            executor3.submit(() -> {
 //                PriceChecker priceChecker
 //                        = new PriceChecker(1000, scheduleManager);
 //            });
-
+            ExecutorService executor4 = Executors.newSingleThreadExecutor();
+            executor4.submit(() -> {
+                RiskWatcher riskWatcher
+                        = new RiskWatcher(39600, scheduleManager);
+            });
         } catch (Exception e) {
         }
 
