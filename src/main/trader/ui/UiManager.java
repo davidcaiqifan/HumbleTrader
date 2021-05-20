@@ -81,7 +81,7 @@ public class UiManager extends Application {
 
             //price
             XYChart.Series<String, Number> seriesPrice = new XYChart.Series<>();
-            seriesSMA2.setName("Price");
+            seriesPrice.setName("Price");
             lineChart.getData().add(seriesPrice);
 
             // setup scene
