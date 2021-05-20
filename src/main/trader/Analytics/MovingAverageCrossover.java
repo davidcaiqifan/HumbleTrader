@@ -83,4 +83,11 @@ public class MovingAverageCrossover implements OrderBookEventListener {
             System.out.println("Not stonks");
         }
     }
+
+    public double getFirstAverage() {
+        return simpleMovingAverage1.getSimpleMovingAverage();
+    }
+    public double getSecondAverage() {
+        return simpleMovingAverage2.getSimpleMovingAverage();
+    }
 }

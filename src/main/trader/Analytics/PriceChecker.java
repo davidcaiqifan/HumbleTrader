@@ -7,7 +7,7 @@ import model.OrderBookCache;
 
 import logic.calc.Math;
 
-public class PriceChecker implements OrderBookEventListener{
+public class PriceChecker implements OrderBookEventListener {
 
     private OrderBookCache orderBookCache;
     private double price;
@@ -18,7 +18,7 @@ public class PriceChecker implements OrderBookEventListener{
         this.scheduleManager.getEventManager().addOrderBookEventListener(this);
         try {
             scheduleManager.periodicCallback(interval, "price");
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
     }
@@ -27,14 +27,20 @@ public class PriceChecker implements OrderBookEventListener{
     public void handleOrderBookEvent(OrderBookCache orderBookCache) {
         this.orderBookCache = orderBookCache;
         this.price = Math.calculateWeightedPrice(this.orderBookCache);
+        //System.out.println(this.price);
     }
 
     @Override
     public void handleScheduleEvent(ScheduleEvent scheduleEvent) {
         String referenceTag = scheduleEvent.getReferenceTag();
-        if(referenceTag == "price") {
-            System.out.println("price : " + this.price);
+        if (referenceTag == "price") {
+            //System.out.println("price : " + this.price);
         }
+    }
+
+    public double getPrice() {
+        //System.out.println(this.price);
+        return this.price;
     }
 
 

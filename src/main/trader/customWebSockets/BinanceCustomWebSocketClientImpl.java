@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 public class BinanceCustomWebSocketClientImpl extends BinanceApiWebSocketClientImpl {
     private final OkHttpClient client;
+
     public BinanceCustomWebSocketClientImpl(OkHttpClient client) {
         super(client);
         this.client = client;

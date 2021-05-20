@@ -24,7 +24,7 @@ public class RiskWatcher implements OrderBookEventListener {
             //we want risk manager to always have the latest price updates, so interval is 100ms(same as websocket interval)
             scheduleManager.periodicCallback(100, "riskwatcher");
             scheduleManager.periodicCallback(1000, "informuser");
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
     }
@@ -38,15 +38,15 @@ public class RiskWatcher implements OrderBookEventListener {
     @Override
     public void handleScheduleEvent(ScheduleEvent scheduleEvent) {
         String referenceTag = scheduleEvent.getReferenceTag();
-        if(referenceTag == "riskwatcher") {
-            if(this.price < this.threshold) {
+        if (referenceTag == "riskwatcher") {
+            if (this.price < this.threshold) {
                 this.signal = -1;
             } else {
                 this.signal = 0;
             }
 
-        } else if(referenceTag == "informuser"){
-            if(this.signal == -1) {
+        } else if (referenceTag == "informuser") {
+            if (this.signal == -1) {
                 System.out.println("panik");
             } else {
                 System.out.println("kalm");
