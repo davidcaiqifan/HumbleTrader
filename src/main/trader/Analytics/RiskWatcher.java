@@ -49,8 +49,12 @@ public class RiskWatcher implements OrderBookEventListener {
             if (this.signal == -1) {
                 System.out.println("panik");
             } else {
-                System.out.println("kalm");
+                //System.out.println("kalm");
             }
         }
+    }
+
+    public double getThreshold() {
+        return this.threshold;
     }
 }

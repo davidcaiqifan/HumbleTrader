@@ -28,6 +28,7 @@ public class UiManager extends Application {
     private ScheduledExecutorService scheduledExecutorServiceSMA1;
     private ScheduledExecutorService scheduledExecutorServiceSMA2;
     private ScheduledExecutorService scheduledExecutorServicePrice;
+    private ScheduledExecutorService scheduledExecutorServiceRisk;
 
     public static void main(String[] args) {
         launch(args);
@@ -44,10 +45,7 @@ public class UiManager extends Application {
         ScheduleManager scheduleManager;
         try {
             scheduleManager = new ScheduleManager(eventManager);
-//            ExecutorService executor4 = Executors.newSingleThreadExecutor();
-//            executor4.submit(() -> {
-//                RiskWatcher riskWatcher
-//                        = new RiskWatcher(39600, scheduleManager);
+
 //            });
 
             primaryStage.setTitle("Analytics Graph");
@@ -84,6 +82,11 @@ public class UiManager extends Application {
             seriesPrice.setName("Price");
             lineChart.getData().add(seriesPrice);
 
+            //risk threshold
+            XYChart.Series<String, Number> seriesRisk = new XYChart.Series<>();
+            seriesRisk.setName("Threshold");
+            lineChart.getData().add(seriesRisk);
+
             // setup scene
             Scene scene = new Scene(lineChart, 800, 600);
             primaryStage.setScene(scene);
@@ -115,7 +118,7 @@ public class UiManager extends Application {
                         if (seriesSMA1.getData().size() > WINDOW_SIZE)
                             seriesSMA1.getData().remove(0);
                     });
-                }, 15, 1, TimeUnit.SECONDS);
+                }, 12, 1, TimeUnit.SECONDS);
 
 
                 // setup a scheduled executor to periodically put data into the chart
@@ -136,7 +139,7 @@ public class UiManager extends Application {
                         if (seriesSMA2.getData().size() > WINDOW_SIZE)
                             seriesSMA2.getData().remove(0);
                     });
-                }, 30, 2, TimeUnit.SECONDS);
+                }, 24, 2, TimeUnit.SECONDS);
             });
 
             ExecutorService executor2 = Executors.newSingleThreadExecutor();
@@ -157,6 +160,29 @@ public class UiManager extends Application {
 
                         if (seriesPrice.getData().size() > WINDOW_SIZE)
                             seriesPrice.getData().remove(0);
+                    });
+                }, 5, 1, TimeUnit.SECONDS);
+            });
+
+            ExecutorService executor4 = Executors.newSingleThreadExecutor();
+            executor4.submit(() -> {
+                RiskWatcher riskWatcher
+                        = new RiskWatcher(40350, scheduleManager);
+                scheduledExecutorServiceRisk = Executors.newSingleThreadScheduledExecutor();
+
+                // put dummy data onto graph per second
+                scheduledExecutorServiceRisk.scheduleAtFixedRate(() -> {
+                    Double threshold = riskWatcher.getThreshold();
+                    //System.out.println(price);
+                    // Update the chart
+                    Platform.runLater(() -> {
+                        // get current time
+                        Date now = new Date();
+                        // put random number with current time
+                        seriesRisk.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), threshold));
+
+                        if (seriesRisk.getData().size() > WINDOW_SIZE)
+                            seriesRisk.getData().remove(0);
                     });
                 }, 5, 1, TimeUnit.SECONDS);
             });
