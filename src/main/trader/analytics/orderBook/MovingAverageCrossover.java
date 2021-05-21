@@ -1,4 +1,4 @@
-package Analytics;
+package analytics.orderBook;
 
 import logic.calc.Math;
 import logic.listeners.OrderBookEventListener;
@@ -7,7 +7,6 @@ import logic.calc.SimpleMovingAverage;
 import logic.schedulers.ScheduleEvent;
 import model.OrderBookCache;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class MovingAverageCrossover implements OrderBookEventListener {

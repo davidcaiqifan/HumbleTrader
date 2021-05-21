@@ -1,5 +1,8 @@
 package logic.listeners;
 
-public interface TradeEventListener {
-     void handleTradeEvent();
+import com.binance.api.client.domain.market.AggTrade;
+
+import java.util.Map;
+
+public interface TradeEventListener extends EventListener<Map<Long, AggTrade>> {
 }

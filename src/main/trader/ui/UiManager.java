@@ -1,8 +1,9 @@
 package ui;
 
-import Analytics.MovingAverageCrossover;
-import Analytics.PriceChecker;
-import Analytics.RiskWatcher;
+import analytics.orderBook.MovingAverageCrossover;
+import analytics.orderBook.PriceChecker;
+import analytics.orderBook.RiskWatcher;
+import com.binance.api.client.domain.market.AggTrade;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -18,10 +19,10 @@ import model.OrderBookCache;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class UiManager extends Application {
@@ -37,15 +38,16 @@ public class UiManager extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        EventManager eventManager = new EventManager<OrderBookCache>();
+        EventManager orderBookEventManager = new EventManager<OrderBookCache>();
+        EventManager tradeEventManager = new EventManager<Map<Long, AggTrade>>();
         ExecutorService executor1 = Executors.newSingleThreadExecutor();
         executor1.submit(() -> {
-            MarketDataManager marketDataManager = new MarketDataManager("BTCUSDT", eventManager);
+            MarketDataManager marketDataManager = new MarketDataManager("BTCUSDT", orderBookEventManager);
             marketDataManager.startOrderBookStreaming();
         });
         ScheduleManager scheduleManager;
         try {
-            scheduleManager = new ScheduleManager(eventManager);
+            scheduleManager = new ScheduleManager(orderBookEventManager);
 
 //            });
 

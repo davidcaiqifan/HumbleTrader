@@ -1,4 +1,4 @@
-package Analytics;
+package analytics.orderBook;
 
 import logic.listeners.OrderBookEventListener;
 import logic.schedulers.ScheduleManager;
@@ -6,9 +6,6 @@ import logic.schedulers.ScheduleEvent;
 import model.OrderBookCache;
 
 import logic.calc.Math;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 public class PriceChecker implements OrderBookEventListener {
 

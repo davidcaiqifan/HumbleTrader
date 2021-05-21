@@ -1,4 +1,4 @@
-package Analytics;
+package analytics.orderBook;
 
 import logic.calc.Math;
 import logic.listeners.OrderBookEventListener;
@@ -6,7 +6,6 @@ import logic.schedulers.ScheduleEvent;
 import logic.schedulers.ScheduleManager;
 import model.OrderBookCache;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class RiskWatcher implements OrderBookEventListener {
@@ -15,8 +14,6 @@ public class RiskWatcher implements OrderBookEventListener {
     private int threshold;
     private double price;
     private int signal;
-    private ScheduledExecutorService ExecutorServiceOne;
-    private ScheduledExecutorService ExecutorServiceTwo;
 
     /**
      * Simple risk manager that generates message when threshold limit is reached
