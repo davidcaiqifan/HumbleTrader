@@ -10,7 +10,7 @@ import model.OrderBookCache;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-public class MovingAverageCrossover implements OrderBookEventListener{
+public class MovingAverageCrossover implements OrderBookEventListener {
     private ScheduleManager scheduleManager;
     private OrderBookCache localOrderBookCache;
     private double priceSample;
@@ -22,9 +22,10 @@ public class MovingAverageCrossover implements OrderBookEventListener{
 
     /**
      * Generates moving average crossover signal
-     * @param period1 Period of first moving average.
-     * @param period2 Period of second moving average.
-     * @param window Window size for samples.
+     *
+     * @param period1         Period of first moving average.
+     * @param period2         Period of second moving average.
+     * @param window          Window size for samples.
      * @param scheduleManager ScheduleManager for periodic callback purposes
      */
     public MovingAverageCrossover(int period1, int period2, int window, int signalInterval, ScheduleManager scheduleManager) {
@@ -32,46 +33,36 @@ public class MovingAverageCrossover implements OrderBookEventListener{
         this.scheduleManager.getEventManager().addOrderBookEventListener(this);
         this.simpleMovingAverage1 = new SimpleMovingAverage(window);
         this.simpleMovingAverage2 = new SimpleMovingAverage(window);
-        //Creates two threads for this listener
-        this.ExecutorServiceOne = Executors.newSingleThreadScheduledExecutor();
-        this.ExecutorServiceTwo = Executors.newSingleThreadScheduledExecutor();
         //initialize periodic callbacks
         try {
             scheduleManager.periodicCallback(period1, "sma1");
             scheduleManager.periodicCallback(period2, "sma2");
             scheduleManager.periodicCallback(signalInterval, "sigint");
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
     }
 
     @Override
     public void handleOrderBookEvent(OrderBookCache orderBookCache) {
-        ExecutorServiceOne.submit(new Runnable() {
-            public void run() {
-                localOrderBookCache = orderBookCache;
-                priceSample = Math.calculateWeightedPrice(localOrderBookCache);
-            }
-        });
+        localOrderBookCache = orderBookCache;
+        priceSample = Math.calculateWeightedPrice(localOrderBookCache);
     }
 
     @Override
     public void handleScheduleEvent(ScheduleEvent scheduleEvent) {
-        ExecutorServiceTwo.submit(new Runnable() {
-            public void run() {
-                String referenceTag = scheduleEvent.getReferenceTag();
-                if(referenceTag == "sma1") {
-                    simpleMovingAverage1.updateSamples(priceSample);
-                    //System.out.println("sma1 : " + simpleMovingAverage1.getSimpleMovingAverage());
-                } else if (referenceTag == "sma2"){
-                    simpleMovingAverage2.updateSamples(priceSample);
-                    //System.out.println("sma2 : " + simpleMovingAverage2.getSimpleMovingAverage());
-                } else if (referenceTag == "sigint") {
-                    generateSignal();
-                    printSignal();
-                }
-            }
-        });
+        String referenceTag = scheduleEvent.getReferenceTag();
+        if (referenceTag == "sma1") {
+            simpleMovingAverage1.updateSamples(priceSample);
+            //System.out.println("sma1 : " + simpleMovingAverage1.getSimpleMovingAverage());
+        } else if (referenceTag == "sma2") {
+            simpleMovingAverage2.updateSamples(priceSample);
+            //System.out.println("sma2 : " + simpleMovingAverage2.getSimpleMovingAverage());
+        } else if (referenceTag == "sigint") {
+            generateSignal();
+            printSignal();
+
+        }
     }
 
     /**
@@ -81,7 +72,7 @@ public class MovingAverageCrossover implements OrderBookEventListener{
         double sma1 = simpleMovingAverage1.getSimpleMovingAverage();
         double sma2 = simpleMovingAverage2.getSimpleMovingAverage();
         //Generate neutral signal if moving averages are still buffering data
-        if(sma1 == -1 || sma2 == -1) {
+        if (sma1 == -1 || sma2 == -1) {
             this.signal = 0;
         } else if (sma1 < sma2) {
             this.signal = 1;
@@ -91,9 +82,9 @@ public class MovingAverageCrossover implements OrderBookEventListener{
     }
 
     private void printSignal() {
-        if(signal == 0) {
+        if (signal == 0) {
             System.out.println("Neutral");
-        } else if(signal == 1) {
+        } else if (signal == 1) {
             System.out.println("To the moon!!");
         } else {
             System.out.println("Not stonks");
@@ -103,6 +94,7 @@ public class MovingAverageCrossover implements OrderBookEventListener{
     public double getFirstAverage() {
         return simpleMovingAverage1.getSimpleMovingAverage();
     }
+
     public double getSecondAverage() {
         return simpleMovingAverage2.getSimpleMovingAverage();
     }

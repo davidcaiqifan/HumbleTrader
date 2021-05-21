@@ -25,8 +25,6 @@ public class RiskWatcher implements OrderBookEventListener {
         this.scheduleManager = scheduleManager;
         this.threshold = threshold;
         this.scheduleManager.getEventManager().addOrderBookEventListener(this);
-        this.ExecutorServiceOne = Executors.newSingleThreadScheduledExecutor();
-        this.ExecutorServiceTwo = Executors.newSingleThreadScheduledExecutor();
         try {
             //we want risk manager to always have the latest price updates, so interval is 100ms(same as websocket interval)
             scheduleManager.periodicCallback(100, "riskwatcher");
@@ -38,35 +36,28 @@ public class RiskWatcher implements OrderBookEventListener {
 
     @Override
     public void handleOrderBookEvent(OrderBookCache orderBookCache) {
-        ExecutorServiceOne.submit(new Runnable() {
-            public void run() {
-                localOrderBookCache = orderBookCache;
-                price = Math.calculateWeightedPrice(localOrderBookCache);
-            }
-        });
+
+        localOrderBookCache = orderBookCache;
+        price = Math.calculateWeightedPrice(localOrderBookCache);
     }
 
     @Override
     public void handleScheduleEvent(ScheduleEvent scheduleEvent) {
-        ExecutorServiceTwo.submit(new Runnable() {
-            public void run() {
-                String referenceTag = scheduleEvent.getReferenceTag();
-                if (referenceTag == "riskwatcher") {
-                    if (price < threshold) {
-                        signal = -1;
-                    } else {
-                        signal = 0;
-                    }
-
-                } else if (referenceTag == "informuser") {
-                    if (signal == -1) {
-                        System.out.println("panik");
-                    } else {
-                        //System.out.println("kalm");
-                    }
-                }
+        String referenceTag = scheduleEvent.getReferenceTag();
+        if (referenceTag == "riskwatcher") {
+            if (price < threshold) {
+                signal = -1;
+            } else {
+                signal = 0;
             }
-        });
+
+        } else if (referenceTag == "informuser") {
+            if (signal == -1) {
+                System.out.println("panik");
+            } else {
+                //System.out.println("kalm");
+            }
+        }
     }
 
     public double getThreshold() {

@@ -96,7 +96,7 @@ public class UiManager extends Application {
 
             // this is used to display time in HH:mm:ss format
             final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
-
+            ScheduledExecutorService ExecutorServiceOne = Executors.newSingleThreadScheduledExecutor();
             MovingAverageCrossover movingAverageCrossover
                     = new MovingAverageCrossover(1000, 2000, 10, 2000, scheduleManager);
             // setup a scheduled executor to periodically put data into the chart
@@ -104,6 +104,7 @@ public class UiManager extends Application {
 
             // put dummy data onto graph per second
             scheduledExecutorServiceSMA1.scheduleAtFixedRate(() -> {
+                SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("HH:mm:ss");
                 Double price1 = movingAverageCrossover.getFirstAverage();
                 //System.out.println(price);
                 // Update the chart
@@ -111,12 +112,12 @@ public class UiManager extends Application {
                     // get current time
                     Date now = new Date();
                     // put random number with current time
-                    seriesSMA1.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price1));
+                    seriesSMA1.getData().add(new XYChart.Data<>(simpleDateFormat1.format(now), price1));
 
                     if (seriesSMA1.getData().size() > WINDOW_SIZE)
                         seriesSMA1.getData().remove(0);
                 });
-            }, 12, 1, TimeUnit.SECONDS);
+            }, 24 , 1, TimeUnit.SECONDS);
 
 
             // setup a scheduled executor to periodically put data into the chart
@@ -125,6 +126,7 @@ public class UiManager extends Application {
             // put dummy data onto graph per second
 
             scheduledExecutorServiceSMA2.scheduleAtFixedRate(() -> {
+                SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("HH:mm:ss");
                 Double price2 = movingAverageCrossover.getSecondAverage();
                 //System.out.println(price);
                 // Update the chart
@@ -132,7 +134,7 @@ public class UiManager extends Application {
                     // get current time
                     Date now = new Date();
                     // put random number with current time
-                    seriesSMA2.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), price2));
+                    seriesSMA2.getData().add(new XYChart.Data<>(simpleDateFormat2.format(now), price2));
 
                     if (seriesSMA2.getData().size() > WINDOW_SIZE)
                         seriesSMA2.getData().remove(0);
@@ -145,6 +147,7 @@ public class UiManager extends Application {
 
             // put dummy data onto graph per second
             scheduledExecutorServicePrice.scheduleAtFixedRate(() -> {
+                SimpleDateFormat simpleDateFormat3 = new SimpleDateFormat("HH:mm:ss");
                 Double price = priceChecker.getPrice();
                 // Update the chart
                 Platform.runLater(() -> {
@@ -156,14 +159,15 @@ public class UiManager extends Application {
                     if (seriesPrice.getData().size() > WINDOW_SIZE)
                         seriesPrice.getData().remove(0);
                 });
-            }, 5, 1, TimeUnit.SECONDS);
+            }, 24, 1, TimeUnit.SECONDS);
 
             RiskWatcher riskWatcher
-                    = new RiskWatcher(40350, scheduleManager);
+                    = new RiskWatcher(40800, scheduleManager);
             scheduledExecutorServiceRisk = Executors.newSingleThreadScheduledExecutor();
 
             // put dummy data onto graph per second
             scheduledExecutorServiceRisk.scheduleAtFixedRate(() -> {
+                SimpleDateFormat simpleDateFormat4 = new SimpleDateFormat("HH:mm:ss");
                 Double threshold = riskWatcher.getThreshold();
                 //System.out.println(price);
                 // Update the chart
@@ -171,12 +175,11 @@ public class UiManager extends Application {
                     // get current time
                     Date now = new Date();
                     // put random number with current time
-                    seriesRisk.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), threshold));
-
+                    seriesRisk.getData().add(new XYChart.Data<>(simpleDateFormat4.format(now), threshold));
                     if (seriesRisk.getData().size() > WINDOW_SIZE)
                         seriesRisk.getData().remove(0);
                 });
-            }, 5, 1, TimeUnit.SECONDS);
+            }, 24, 1, TimeUnit.SECONDS);
 
         } catch (Exception e) {
         }
