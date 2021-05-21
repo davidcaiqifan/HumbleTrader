@@ -9,6 +9,6 @@ Run UiRunner to see a real time price graph.
 
 How to implement your own analytics class :
 
-1. Implement OrderBookEventLister
+1. Implement an EventListener
 2. Use schedule manager to schedule periodic callbacks
-3. Add listener to event manager's orderBookListener list
+3. Add listener to event manager's listener list
