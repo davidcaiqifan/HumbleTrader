@@ -50,6 +50,13 @@ public class OrderBookManager {
     }
 
     public void handleOrderBookEvent(DepthEvent depthEvent) {
+        if (depthEvent.getFinalUpdateId() > lastUpdateId) {
+            System.out.println(depthEvent);
+            lastUpdateId = depthEvent.getFinalUpdateId();
+            updateOrderBook(getAsks(), depthEvent.getAsks());
+            updateOrderBook(getBids(), depthEvent.getBids());
+            printDepthCache();
+        }
         this.lastUpdateId = depthEvent.getFinalUpdateId();
         updateOrderBook(getAsks(), depthEvent.getAsks());
         updateOrderBook(getBids(), depthEvent.getBids());

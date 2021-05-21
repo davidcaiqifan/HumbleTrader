@@ -2,12 +2,11 @@ package logic.dataProcessors;
 
 import com.binance.api.client.domain.event.AggTradeEvent;
 import com.binance.api.client.domain.market.AggTrade;
+import logic.EventManager;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class TradeManager {
     /**
@@ -15,26 +14,19 @@ public class TradeManager {
      * automatically updated whenever a new agg data stream event arrives.
      */
     private Map<Long, AggTrade> aggTradesCache;
-    private BinanceGateway binanceGateway;
-    private long lastTradeId;
-    public TradeManager(BinanceGateway binanceGateway) {
-//        this.binanceGateway = binanceGateway;
-//        initializeAggTradesCache();
-//        ExecutorService executor = Executors.newSingleThreadExecutor();
-//        executor.submit(() -> {
-//            startAggTradesEventStreaming();
-//        });
+    private EventManager<Map<Long, AggTrade>> eventManager;
 
+    public TradeManager(EventManager<Map<Long, AggTrade>> eventManager, List<AggTrade> tradeList) {
+        this.eventManager = eventManager;
+        initializeAggTradesCache(tradeList);
     }
 
     /**
      * Initializes the aggTrades cache by using the REST API.
      */
-    private void initializeAggTradesCache() {
-        List<AggTrade> aggTrades = this.binanceGateway.getRecentTradeSnapshot();
+    private void initializeAggTradesCache(List<AggTrade> aggTrades) {
         this.aggTradesCache = new HashMap<>();
         for (AggTrade aggTrade : aggTrades) {
-            lastTradeId = aggTrade.getAggregatedTradeId();
             aggTradesCache.put(aggTrade.getAggregatedTradeId(), aggTrade);
         }
     }
@@ -42,32 +34,26 @@ public class TradeManager {
     /**
      * Begins streaming of agg trades events.
      */
-//    private void startAggTradesEventStreaming() {
-//        this.binanceGateway.subscribeTradeEvents();
-//        while(true) {
-//            try {
-//                AggTradeEvent response = this.binanceGateway.getTradeEvent();
-//                Long aggregatedTradeId = response.getAggregatedTradeId();
-//                AggTrade updateAggTrade = aggTradesCache.get(aggregatedTradeId);
-//                if (updateAggTrade == null) {
-//                    // new agg trade
-//                    updateAggTrade = new AggTrade();
-//                }
-//                updateAggTrade.setAggregatedTradeId(aggregatedTradeId);
-//                updateAggTrade.setPrice(response.getPrice());
-//                updateAggTrade.setQuantity(response.getQuantity());
-//                updateAggTrade.setFirstBreakdownTradeId(response.getFirstBreakdownTradeId());
-//                updateAggTrade.setLastBreakdownTradeId(response.getLastBreakdownTradeId());
-//                updateAggTrade.setBuyerMaker(response.isBuyerMaker());
-//                lastTradeId = aggregatedTradeId;
-//                // Store the updated agg trade in the cache
-//                aggTradesCache.put(aggregatedTradeId, updateAggTrade);
-//                //System.out.println(updateAggTrade);
-//            } catch(InterruptedException e) {
-//                System.out.println(e);
-//            }
-//        }
-//    }
+    private void handleTradeEvent(AggTradeEvent aggTradeEvent) {
+        Long aggregatedTradeId = aggTradeEvent.getAggregatedTradeId();
+        AggTrade updateAggTrade = this.aggTradesCache.get(aggregatedTradeId);
+        if (updateAggTrade == null) {
+            // new agg trade
+            updateAggTrade = new AggTrade();
+        }
+        updateAggTrade.setAggregatedTradeId(aggregatedTradeId);
+        updateAggTrade.setPrice(aggTradeEvent.getPrice());
+        updateAggTrade.setQuantity(aggTradeEvent.getQuantity());
+        updateAggTrade.setFirstBreakdownTradeId(aggTradeEvent.getFirstBreakdownTradeId());
+        updateAggTrade.setLastBreakdownTradeId(aggTradeEvent.getLastBreakdownTradeId());
+        updateAggTrade.setBuyerMaker(aggTradeEvent.isBuyerMaker());
+
+        // Store the updated agg trade in the cache
+        this.aggTradesCache.put(aggregatedTradeId, updateAggTrade);
+        eventManager.publishEvent(this.aggTradesCache);
+        //System.out.println(updateAggTrade);
+    }
+
     /**
      * @return an aggTrades cache, containing the aggregated trade id as the key,
      * and the agg trade data as the value.
@@ -76,11 +62,5 @@ public class TradeManager {
         return aggTradesCache;
     }
 
-    public double getLastTradePrice() {
-        return Double.parseDouble(aggTradesCache.get(lastTradeId).getPrice());
-    }
 
-//    public static void main(String[] args) {
-//        new TradeManager(new EventManager());
-//    }
 }
