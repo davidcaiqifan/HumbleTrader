@@ -14,6 +14,7 @@ import javafx.scene.chart.XYChart;
 import logic.EventManager;
 import logic.dataProcessors.MarketDataManager;
 import logic.schedulers.ScheduleManager;
+import model.OrderBookCache;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,7 +37,7 @@ public class UiManager extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        EventManager eventManager = new EventManager();
+        EventManager eventManager = new EventManager<OrderBookCache>();
         ExecutorService executor1 = Executors.newSingleThreadExecutor();
         executor1.submit(() -> {
             MarketDataManager marketDataManager = new MarketDataManager("BTCUSDT", eventManager);

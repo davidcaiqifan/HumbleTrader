@@ -18,7 +18,7 @@ public class PriceChecker implements OrderBookEventListener {
 
     public PriceChecker(int interval, ScheduleManager scheduleManager) {
         this.scheduleManager = scheduleManager;
-        this.scheduleManager.getEventManager().addOrderBookEventListener(this);
+        this.scheduleManager.getEventManager().addEventListener(this);
         //Creates two threads for this listener
         try {
             scheduleManager.periodicCallback(interval, "price");
@@ -28,7 +28,7 @@ public class PriceChecker implements OrderBookEventListener {
     }
 
     @Override
-    public void handleOrderBookEvent(OrderBookCache orderBookCache) {
+    public void handleEvent(OrderBookCache orderBookCache) {
 
         localOrderBookCache = orderBookCache;
         price = Math.calculateWeightedPrice(localOrderBookCache);

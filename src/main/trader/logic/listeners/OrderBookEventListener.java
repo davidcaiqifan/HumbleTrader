@@ -8,7 +8,5 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.NavigableMap;
 
-public interface OrderBookEventListener {
-    void handleOrderBookEvent(OrderBookCache orderBookCache);
-    void handleScheduleEvent(ScheduleEvent scheduleEvent);
+public interface OrderBookEventListener extends EventListener<OrderBookCache> {
 }

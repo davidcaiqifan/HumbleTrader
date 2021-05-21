@@ -24,7 +24,7 @@ public class RiskWatcher implements OrderBookEventListener {
     public RiskWatcher(int threshold, ScheduleManager scheduleManager) {
         this.scheduleManager = scheduleManager;
         this.threshold = threshold;
-        this.scheduleManager.getEventManager().addOrderBookEventListener(this);
+        this.scheduleManager.getEventManager().addEventListener(this);
         try {
             //we want risk manager to always have the latest price updates, so interval is 100ms(same as websocket interval)
             scheduleManager.periodicCallback(100, "riskwatcher");
@@ -35,7 +35,7 @@ public class RiskWatcher implements OrderBookEventListener {
     }
 
     @Override
-    public void handleOrderBookEvent(OrderBookCache orderBookCache) {
+    public void handleEvent(OrderBookCache orderBookCache) {
 
         localOrderBookCache = orderBookCache;
         price = Math.calculateWeightedPrice(localOrderBookCache);

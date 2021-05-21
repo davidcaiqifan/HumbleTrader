@@ -1,50 +1,35 @@
 package logic;
 
 import logic.calc.Math;
+import logic.listeners.EventListener;
 import logic.listeners.OrderBookEventListener;
 import logic.listeners.TradeEventListener;
 import logic.schedulers.ScheduleEvent;
-import logic.schedulers.ScheduleJob;
 import model.OrderBookCache;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.quartz.JobBuilder.newJob;
-
-public class EventManager {
-    private List<OrderBookEventListener> orderBookEventListeners = new ArrayList<>();
-    private List<TradeEventListener> tradeEventListeners = new ArrayList<>();
-
-    public EventManager() {
-    }
-
+public class EventManager<U> {
+    private List<EventListener<U>> eventListeners = new ArrayList<>();
 
     /**
-     * Add trade event listeners.
+     * Add event listeners.
      */
-    public void addTradeEventListener(TradeEventListener toAdd) {
-        tradeEventListeners.add(toAdd);
+    public void addEventListener(EventListener<U> eventListener) {
+        eventListeners.add(eventListener);
     }
 
-    /**
-     * Add order book event listeners.
-     */
-    public void addOrderBookEventListener(OrderBookEventListener orderBookEventListener) {
-        orderBookEventListeners.add(orderBookEventListener);
-    }
-
-    public void publishOrderBookEvent(OrderBookCache orderBookCache) {
+    public void publishEvent(U event) {
         //handle listener multithreading
         ExecutorService executor = Executors.newCachedThreadPool();
         // Notify everybody that may be interested.
-        for (OrderBookEventListener ol : this.orderBookEventListeners) {
+        for (EventListener<U> eventListener : this.eventListeners) {
             executor.submit(new Runnable() {
                 public void run() {
-                    ol.handleOrderBookEvent(orderBookCache);
+                    eventListener.handleEvent(event);
                 }
             });
         }
@@ -52,10 +37,10 @@ public class EventManager {
 
     public void publishScheduleEvent(ScheduleEvent scheduleEvent) {
         ExecutorService executor = Executors.newCachedThreadPool();
-        for (OrderBookEventListener ol : this.orderBookEventListeners) {
+        for (EventListener<U> eventListener: this.eventListeners) {
             executor.submit(new Runnable() {
                 public void run() {
-                    ol.handleScheduleEvent(scheduleEvent);
+                    eventListener.handleScheduleEvent(scheduleEvent);
                 }
             });
         }

@@ -30,7 +30,7 @@ public class MovingAverageCrossover implements OrderBookEventListener {
      */
     public MovingAverageCrossover(int period1, int period2, int window, int signalInterval, ScheduleManager scheduleManager) {
         this.scheduleManager = scheduleManager;
-        this.scheduleManager.getEventManager().addOrderBookEventListener(this);
+        this.scheduleManager.getEventManager().addEventListener(this);
         this.simpleMovingAverage1 = new SimpleMovingAverage(window);
         this.simpleMovingAverage2 = new SimpleMovingAverage(window);
         //initialize periodic callbacks
@@ -44,7 +44,7 @@ public class MovingAverageCrossover implements OrderBookEventListener {
     }
 
     @Override
-    public void handleOrderBookEvent(OrderBookCache orderBookCache) {
+    public void handleEvent(OrderBookCache orderBookCache) {
         localOrderBookCache = orderBookCache;
         priceSample = Math.calculateWeightedPrice(localOrderBookCache);
     }

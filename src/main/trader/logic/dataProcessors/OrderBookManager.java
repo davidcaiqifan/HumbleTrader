@@ -22,9 +22,9 @@ public class OrderBookManager {
     private static final String ASKS  = "ASKS";
     private long lastUpdateId;
     private Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
-    private EventManager eventManager;
+    private EventManager<OrderBookCache> eventManager;
 
-    public OrderBookManager(EventManager eventManager, OrderBook orderBook) {
+    public OrderBookManager(EventManager<OrderBookCache> eventManager, OrderBook orderBook) {
         this.eventManager = eventManager;
         initializeDepthCache(orderBook);
     }
@@ -53,7 +53,7 @@ public class OrderBookManager {
         this.lastUpdateId = depthEvent.getFinalUpdateId();
         updateOrderBook(getAsks(), depthEvent.getAsks());
         updateOrderBook(getBids(), depthEvent.getBids());
-        eventManager.publishOrderBookEvent(new OrderBookCache(this.depthCache));
+        eventManager.publishEvent(new OrderBookCache(this.depthCache));
         //printDepthCache();
     }
 
