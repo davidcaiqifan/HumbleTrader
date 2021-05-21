@@ -15,7 +15,7 @@ public class TradeListenerExample implements TradeEventListener {
     private int interval;
 
     /**
-     * Simple Trade event listener that prints out latest trade
+     * Simple Trade event listener that prints cumulative trade volume
      */
     public TradeListenerExample(int interval, ScheduleManager scheduleManager) {
         this.scheduleManager = scheduleManager;
@@ -38,7 +38,7 @@ public class TradeListenerExample implements TradeEventListener {
     public void handleScheduleEvent(ScheduleEvent scheduleEvent) {
         String referenceTag = scheduleEvent.getReferenceTag();
         if (referenceTag == "recenttrade") {
-            System.out.println("Latest Trade : " + this.localTradeCache.get(1));
+            System.out.println("Latest Trade : " + this.localTradeCache.size());
         }
     }
 }

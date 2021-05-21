@@ -1,8 +1,10 @@
 package logic.dataProcessors;
 
 import com.binance.api.client.domain.event.DepthEvent;
+import com.binance.api.client.domain.market.AggTrade;
 import com.binance.api.client.domain.market.OrderBook;
 import logic.EventManager;
+import model.OrderBookCache;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -13,12 +15,14 @@ public class MarketDataManager {
     private OrderBookManager orderBookManager;
     private TradeManager tradeManager;
     private EventManager eventManager;
-    public MarketDataManager(String symbol, EventManager eventManager) {
+    public MarketDataManager(String symbol, EventManager<OrderBookCache> orderBookEventManager,
+                             EventManager<Map<Long, AggTrade>> tradeEventmanager) {
         this.binanceGateway = new BinanceGateway(symbol);
-        this.eventManager = eventManager;
-        this.orderBookManager = new OrderBookManager(eventManager, binanceGateway.getOrderBookSnapshot());
-        //this.tradeManager = new TradeManager(this.binanceGateway);
+        this.eventManager = orderBookEventManager;
+        this.orderBookManager = new OrderBookManager(orderBookEventManager, binanceGateway.getOrderBookSnapshot());
+        this.tradeManager = new TradeManager(tradeEventmanager, binanceGateway.getRecentTradeSnapshot());
         startOrderBookStreaming();
+        startTradeEventStreaming();
     }
 
     public OrderBookManager getOrderBookManager() {
@@ -31,5 +35,8 @@ public class MarketDataManager {
 
     public void startOrderBookStreaming() {
         this.binanceGateway.subscribeOrderBookEvents(this.orderBookManager);
+    }
+    public void startTradeEventStreaming() {
+        this.binanceGateway.subscribeTradeEvents(this.tradeManager);
     }
 }

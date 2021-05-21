@@ -23,10 +23,15 @@ public class OrderBookManager {
     private long lastUpdateId;
     private Map<String, NavigableMap<BigDecimal, BigDecimal>> depthCache;
     private EventManager<OrderBookCache> eventManager;
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public OrderBookManager(EventManager<OrderBookCache> eventManager, OrderBook orderBook) {
         this.eventManager = eventManager;
-        initializeDepthCache(orderBook);
+        executor.submit(new Runnable() {
+            public void run() {
+                initializeDepthCache(orderBook);
+            }
+        });
     }
 
     /**
@@ -49,18 +54,24 @@ public class OrderBookManager {
         depthCache.put(BIDS, bids);
     }
 
+    /**
+     * Called by binance gateway to push data to OrderBookManager.
+     */
     public void handleOrderBookEvent(DepthEvent depthEvent) {
-        if (depthEvent.getFinalUpdateId() > lastUpdateId) {
-            System.out.println(depthEvent);
-            lastUpdateId = depthEvent.getFinalUpdateId();
-            updateOrderBook(getAsks(), depthEvent.getAsks());
-            updateOrderBook(getBids(), depthEvent.getBids());
-            printDepthCache();
-        }
-        this.lastUpdateId = depthEvent.getFinalUpdateId();
-        updateOrderBook(getAsks(), depthEvent.getAsks());
-        updateOrderBook(getBids(), depthEvent.getBids());
-        eventManager.publishEvent(new OrderBookCache(this.depthCache));
+        executor.submit(new Runnable() {
+            public void run() {
+                if (depthEvent.getFinalUpdateId() > lastUpdateId) {
+                    //System.out.println(depthEvent);
+                    lastUpdateId = depthEvent.getFinalUpdateId();
+                    updateOrderBook(getAsks(), depthEvent.getAsks());
+                    updateOrderBook(getBids(), depthEvent.getBids());
+                }
+                lastUpdateId = depthEvent.getFinalUpdateId();
+                updateOrderBook(getAsks(), depthEvent.getAsks());
+                updateOrderBook(getBids(), depthEvent.getBids());
+                eventManager.publishEvent(new OrderBookCache(depthCache));
+            }
+        });
         //printDepthCache();
     }
 

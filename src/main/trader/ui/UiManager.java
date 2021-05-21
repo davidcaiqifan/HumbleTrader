@@ -3,6 +3,7 @@ package ui;
 import analytics.orderBook.MovingAverageCrossover;
 import analytics.orderBook.PriceChecker;
 import analytics.orderBook.RiskWatcher;
+import analytics.trade.TradeListenerExample;
 import com.binance.api.client.domain.market.AggTrade;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -31,6 +32,7 @@ public class UiManager extends Application {
     private ScheduledExecutorService scheduledExecutorServiceSMA2;
     private ScheduledExecutorService scheduledExecutorServicePrice;
     private ScheduledExecutorService scheduledExecutorServiceRisk;
+    private ScheduledExecutorService scheduledExecutorServiceTrade;
 
     public static void main(String[] args) {
         launch(args);
@@ -42,15 +44,19 @@ public class UiManager extends Application {
         EventManager tradeEventManager = new EventManager<Map<Long, AggTrade>>();
         ExecutorService executor1 = Executors.newSingleThreadExecutor();
         executor1.submit(() -> {
-            MarketDataManager marketDataManager = new MarketDataManager("BTCUSDT", orderBookEventManager);
+            MarketDataManager marketDataManager
+                    = new MarketDataManager("BTCUSDT", orderBookEventManager, tradeEventManager);
             marketDataManager.startOrderBookStreaming();
         });
         ScheduleManager scheduleManager;
+        ScheduleManager tradeScheduleManager;
         try {
             scheduleManager = new ScheduleManager(orderBookEventManager);
+            tradeScheduleManager = new ScheduleManager(tradeEventManager);
 
 //            });
-
+            TradeListenerExample tradeListenerExample
+                    = new TradeListenerExample(1000, tradeScheduleManager);
             primaryStage.setTitle("Analytics Graph");
             //defining the axes
             final CategoryAxis xAxis = new CategoryAxis(); // we are gonna plot against time

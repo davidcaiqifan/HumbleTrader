@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 public class EventManager<U> {
     private List<EventListener<U>> eventListeners = new ArrayList<>();
-
+    private ExecutorService executor = Executors.newCachedThreadPool();
     /**
      * Add event listeners.
      */
@@ -23,8 +23,6 @@ public class EventManager<U> {
     }
 
     public void publishEvent(U event) {
-        //handle listener multithreading
-        ExecutorService executor = Executors.newCachedThreadPool();
         // Notify everybody that may be interested.
         for (EventListener<U> eventListener : this.eventListeners) {
             executor.submit(new Runnable() {
@@ -36,7 +34,6 @@ public class EventManager<U> {
     }
 
     public void publishScheduleEvent(ScheduleEvent scheduleEvent) {
-        ExecutorService executor = Executors.newCachedThreadPool();
         for (EventListener<U> eventListener: this.eventListeners) {
             executor.submit(new Runnable() {
                 public void run() {

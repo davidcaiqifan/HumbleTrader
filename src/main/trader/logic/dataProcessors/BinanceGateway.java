@@ -38,7 +38,7 @@ public class BinanceGateway {
 
     public void subscribeTradeEvents(TradeManager tradeManager) {
         webSocketClient.onAggTradeEvent(this.symbol.toLowerCase(), response -> {
-
+            tradeManager.handleTradeEvent(response);
         });
     }
 
