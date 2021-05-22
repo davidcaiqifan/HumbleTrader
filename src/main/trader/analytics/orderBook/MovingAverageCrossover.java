@@ -7,17 +7,15 @@ import logic.calc.SimpleMovingAverage;
 import logic.schedulers.ScheduleEvent;
 import model.OrderBookCache;
 
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
-public class MovingAverageCrossover implements OrderBookEventListener {
-    private ScheduleManager scheduleManager;
+public class MovingAverageCrossover extends OrderBookEventListener {
     private OrderBookCache localOrderBookCache;
     private double priceSample;
     private SimpleMovingAverage simpleMovingAverage1;
     private SimpleMovingAverage simpleMovingAverage2;
     private int signal = 0;
-    private ScheduledExecutorService ExecutorServiceOne;
-    private ScheduledExecutorService ExecutorServiceTwo;
 
     /**
      * Generates moving average crossover signal
@@ -28,18 +26,9 @@ public class MovingAverageCrossover implements OrderBookEventListener {
      * @param scheduleManager ScheduleManager for periodic callback purposes
      */
     public MovingAverageCrossover(int period1, int period2, int window, int signalInterval, ScheduleManager scheduleManager) {
-        this.scheduleManager = scheduleManager;
-        this.scheduleManager.getEventManager().addEventListener(this);
+        super(scheduleManager, period1, period2, signalInterval);
         this.simpleMovingAverage1 = new SimpleMovingAverage(window);
         this.simpleMovingAverage2 = new SimpleMovingAverage(window);
-        //initialize periodic callbacks
-        try {
-            scheduleManager.periodicCallback(period1, "sma1");
-            scheduleManager.periodicCallback(period2, "sma2");
-            scheduleManager.periodicCallback(signalInterval, "sigint");
-        } catch (Exception e) {
-            System.out.println(e);
-        }
     }
 
     @Override
@@ -50,14 +39,17 @@ public class MovingAverageCrossover implements OrderBookEventListener {
 
     @Override
     public void handleScheduleEvent(ScheduleEvent scheduleEvent) {
+        List<String> scheduledCallbackTags;
+        //gets list of scheduled callback tags ordered based on input order in super-constructor
+        scheduledCallbackTags = super.getScheduledCallbackTags();
         String referenceTag = scheduleEvent.getReferenceTag();
-        if (referenceTag == "sma1") {
+        if (referenceTag == scheduledCallbackTags.get(0)) {
             simpleMovingAverage1.updateSamples(priceSample);
             //System.out.println("sma1 : " + simpleMovingAverage1.getSimpleMovingAverage());
-        } else if (referenceTag == "sma2") {
+        } else if (referenceTag == scheduledCallbackTags.get(1)) {
             simpleMovingAverage2.updateSamples(priceSample);
             //System.out.println("sma2 : " + simpleMovingAverage2.getSimpleMovingAverage());
-        } else if (referenceTag == "sigint") {
+        } else if (referenceTag == scheduledCallbackTags.get(2)) {
             generateSignal();
             printSignal();
 

@@ -1,11 +1,9 @@
 package analytics.trade;
 
 import com.binance.api.client.domain.market.AggTrade;
-import logic.calc.Math;
 import logic.listeners.TradeEventListener;
 import logic.schedulers.ScheduleEvent;
 import logic.schedulers.ScheduleManager;
-import model.OrderBookCache;
 
 import java.util.Map;
 

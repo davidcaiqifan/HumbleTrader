@@ -6,11 +6,11 @@ import logic.schedulers.ScheduleEvent;
 import logic.schedulers.ScheduleManager;
 import model.OrderBookCache;
 
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
-public class RiskWatcher implements OrderBookEventListener {
+public class RiskWatcher extends OrderBookEventListener {
     private OrderBookCache localOrderBookCache;
-    private ScheduleManager scheduleManager;
     private int threshold;
     private double price;
     private int signal;
@@ -18,17 +18,9 @@ public class RiskWatcher implements OrderBookEventListener {
     /**
      * Simple risk manager that generates message when threshold limit is reached
      */
-    public RiskWatcher(int threshold, ScheduleManager scheduleManager) {
-        this.scheduleManager = scheduleManager;
+    public RiskWatcher(int threshold, int interval, ScheduleManager scheduleManager) {
+        super(scheduleManager, interval);
         this.threshold = threshold;
-        this.scheduleManager.getEventManager().addEventListener(this);
-        try {
-            //we want risk manager to always have the latest price updates, so interval is 100ms(same as websocket interval)
-            scheduleManager.periodicCallback(100, "riskwatcher");
-            scheduleManager.periodicCallback(1000, "informuser");
-        } catch (Exception e) {
-            System.out.println(e);
-        }
     }
 
     @Override
@@ -36,19 +28,20 @@ public class RiskWatcher implements OrderBookEventListener {
 
         localOrderBookCache = orderBookCache;
         price = Math.calculateWeightedPrice(localOrderBookCache);
+        if (price < threshold) {
+            signal = -1;
+        } else {
+            signal = 0;
+        }
     }
 
     @Override
     public void handleScheduleEvent(ScheduleEvent scheduleEvent) {
+        List<String> scheduledCallbackTags;
+        //gets list of scheduled callback tags ordered based on input order in super-constructor
+        scheduledCallbackTags = super.getScheduledCallbackTags();
         String referenceTag = scheduleEvent.getReferenceTag();
-        if (referenceTag == "riskwatcher") {
-            if (price < threshold) {
-                signal = -1;
-            } else {
-                signal = 0;
-            }
-
-        } else if (referenceTag == "informuser") {
+        if (referenceTag == scheduledCallbackTags.get(0)) {
             if (signal == -1) {
                 System.out.println("panik");
             } else {
