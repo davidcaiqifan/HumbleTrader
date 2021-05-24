@@ -31,7 +31,7 @@ public class Math {
         Double weightedVolumeBid = 0.0;
         Double weightedVolumeAsk = 0.0;
         for (int i = 0; i < depth; i++) {
-            weightedVolumeAsk += (exp(-0.5 * i) * asks.get(i).doubleValue());
+            weightedVolumeAsk += (exp(-0.5 * i) * asks.get(asks.size() - i - 1).doubleValue());
             weightedVolumeBid += (exp(-0.5 * i) * bids.get(i).doubleValue());
         }
         Double imbalance = (weightedVolumeBid - weightedVolumeAsk) / (weightedVolumeAsk + weightedVolumeBid);

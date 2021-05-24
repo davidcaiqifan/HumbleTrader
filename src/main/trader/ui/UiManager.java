@@ -193,7 +193,7 @@ public class UiManager extends Application {
             }, 24, 1, TimeUnit.SECONDS);
 
             OrderImbalanceRiskWatcher orderImbalanceRiskWatcher
-                    = new OrderImbalanceRiskWatcher(0.99, scheduleManager);
+                    = new OrderImbalanceRiskWatcher(0.90, scheduleManager);
             scheduledExecutorServiceImbalance = Executors.newSingleThreadScheduledExecutor();
 
         } catch (Exception e) {

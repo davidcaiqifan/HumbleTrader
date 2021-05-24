@@ -50,7 +50,7 @@ public class OrderImbalanceRiskWatcher implements OrderBookEventListener {
             } else if (signal == 1) {
                 System.out.println("Too many buy orders: " + imbalance);
             } else {
-                System.out.println("Balanced Orders");
+                System.out.println("Balanced Orders: " + imbalance);
             }
         }
     }
