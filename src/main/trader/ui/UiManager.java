@@ -1,6 +1,7 @@
 package ui;
 
 import analytics.orderBook.MovingAverageCrossover;
+import analytics.orderBook.OrderImbalanceRiskWatcher;
 import analytics.orderBook.PriceChecker;
 import analytics.orderBook.RiskWatcher;
 import analytics.trade.TradeListenerExample;
@@ -33,6 +34,7 @@ public class UiManager extends Application {
     private ScheduledExecutorService scheduledExecutorServicePrice;
     private ScheduledExecutorService scheduledExecutorServiceRisk;
     private ScheduledExecutorService scheduledExecutorServiceTrade;
+    private ScheduledExecutorService scheduledExecutorServiceImbalance;
 
     public static void main(String[] args) {
         launch(args);
@@ -189,6 +191,10 @@ public class UiManager extends Application {
                         seriesRisk.getData().remove(0);
                 });
             }, 24, 1, TimeUnit.SECONDS);
+
+            OrderImbalanceRiskWatcher orderImbalanceRiskWatcher
+                    = new OrderImbalanceRiskWatcher(0.99, scheduleManager);
+            scheduledExecutorServiceImbalance = Executors.newSingleThreadScheduledExecutor();
 
         } catch (Exception e) {
         }
