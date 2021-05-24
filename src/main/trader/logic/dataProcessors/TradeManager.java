@@ -3,6 +3,7 @@ package logic.dataProcessors;
 import com.binance.api.client.domain.event.AggTradeEvent;
 import com.binance.api.client.domain.market.AggTrade;
 import logic.EventManager;
+import model.AggsTradeCache;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,10 +17,10 @@ public class TradeManager {
      * automatically updated whenever a new agg data stream event arrives.
      */
     private Map<Long, AggTrade> aggTradesCache;
-    private EventManager<Map<Long, AggTrade>> eventManager;
+    private EventManager<AggsTradeCache> eventManager;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    public TradeManager(EventManager<Map<Long, AggTrade>> eventManager, List<AggTrade> tradeList) {
+    public TradeManager(EventManager<AggsTradeCache> eventManager, List<AggTrade> tradeList) {
         this.eventManager = eventManager;
         executor.submit(new Runnable() {
             public void run() {
@@ -60,7 +61,7 @@ public class TradeManager {
 
                 // Store the updated agg trade in the cache
                 aggTradesCache.put(aggregatedTradeId, updateAggTrade);
-                eventManager.publishEvent(aggTradesCache);
+                eventManager.publishEvent(new AggsTradeCache(aggTradesCache));
             }
         });
 

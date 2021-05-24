@@ -1,0 +1,81 @@
+package platform;
+
+import com.binance.api.client.domain.market.AggTrade;
+import logic.EventManager;
+import logic.EventManagerFactory;
+import logic.dataProcessors.MarketDataManager;
+import logic.schedulers.ScheduleManager;
+import model.AggsTradeCache;
+import model.OrderBookCache;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class AnalyticsBuilder {
+    private String symbol;
+    private ExecutorService executorService = Executors.newCachedThreadPool();;
+    private EventManagerFactory eventManagerFactory = new EventManagerFactory();
+    private EventManager<OrderBookCache> orderBookCacheEventManager;
+    private EventManager<AggsTradeCache> tradeEventManager;
+
+    public ScheduleManager getOrderBookScheduleManager() {
+        return orderBookScheduleManager;
+    }
+
+    private ScheduleManager orderBookScheduleManager;
+
+    public ScheduleManager getTradeScheduleManager() {
+        return tradeScheduleManager;
+    }
+
+    private ScheduleManager tradeScheduleManager;
+
+    /**
+     * Build's analytics platform given a symbol.
+     * @param symbol
+     */
+    public AnalyticsBuilder(String symbol) {
+        this.symbol = symbol;
+    }
+
+    /**
+     * Creates a new instance of EventManager<OrderBookCache>. Only one instance is allowed to exist.
+     */
+    public AnalyticsBuilder withOrderBook() {
+        this.orderBookCacheEventManager = this.eventManagerFactory.getEventManager(OrderBookCache.class);
+        try {
+            this.orderBookScheduleManager = new ScheduleManager(orderBookCacheEventManager);
+        } catch(Exception e) {
+            System.out.println(e);
+        }
+        return this;
+    }
+
+    /**
+     * Creates a new instance of EventManager<OrderBookCache>. Only one instance is allowed to exist.
+     */
+    public AnalyticsBuilder withAggsTrade() {
+        this.tradeEventManager = this.eventManagerFactory.getEventManager(AggsTradeCache.class);
+        try {
+            this.tradeScheduleManager = new ScheduleManager(tradeEventManager);
+        } catch(Exception e) {
+            System.out.println(e);
+        }
+        return this;
+    }
+
+    /**
+     * initializes market data manager
+     */
+    public void initialize() {
+        executorService.submit(() -> {
+            MarketDataManager marketDataManager
+                    = new MarketDataManager("BTCUSDT", orderBookCacheEventManager, tradeEventManager);
+            marketDataManager.startOrderBookStreaming();
+        });
+    }
+
+}

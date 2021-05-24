@@ -4,6 +4,7 @@ import com.binance.api.client.domain.event.DepthEvent;
 import com.binance.api.client.domain.market.AggTrade;
 import com.binance.api.client.domain.market.OrderBook;
 import logic.EventManager;
+import model.AggsTradeCache;
 import model.OrderBookCache;
 
 import java.math.BigDecimal;
@@ -16,7 +17,7 @@ public class MarketDataManager {
     private TradeManager tradeManager;
     private EventManager eventManager;
     public MarketDataManager(String symbol, EventManager<OrderBookCache> orderBookEventManager,
-                             EventManager<Map<Long, AggTrade>> tradeEventmanager) {
+                             EventManager<AggsTradeCache> tradeEventmanager) {
         this.binanceGateway = new BinanceGateway(symbol);
         this.eventManager = orderBookEventManager;
         this.orderBookManager = new OrderBookManager(orderBookEventManager, binanceGateway.getOrderBookSnapshot());
