@@ -16,7 +16,7 @@ public class RiskWatcher extends OrderBookEventListener {
     private int signal;
 
     /**
-     * Simple risk manager that generates message when threshold limit is reached
+     * Simple risk manager that generates message every interval when threshold limit is reached
      */
     public RiskWatcher(int threshold, int interval, ScheduleManager scheduleManager) {
         super(scheduleManager, interval);
