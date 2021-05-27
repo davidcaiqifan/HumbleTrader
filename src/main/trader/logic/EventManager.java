@@ -1,11 +1,7 @@
 package logic;
 
-import logic.calc.Math;
 import logic.listeners.EventListener;
-import logic.listeners.OrderBookEventListener;
-import logic.listeners.TradeEventListener;
 import logic.schedulers.ScheduleEvent;
-import model.OrderBookCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +11,7 @@ import java.util.concurrent.Executors;
 public class EventManager<U> {
     private List<EventListener<U>> eventListeners = new ArrayList<>();
     private ExecutorService executor = Executors.newCachedThreadPool();
+
     /**
      * Add event listeners.
      */

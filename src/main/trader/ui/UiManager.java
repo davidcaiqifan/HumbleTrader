@@ -44,8 +44,8 @@ public class UiManager extends Application {
         //BasicConfigurator.configure();
         ScheduleManager scheduleManager = analyticsBuilder.getOrderBookScheduleManager();
         ScheduleManager tradeScheduleManager = analyticsBuilder.getTradeScheduleManager();
-        TradeListenerExample tradeListenerExample
-                = new TradeListenerExample(1000, tradeScheduleManager);
+//        TradeListenerExample tradeListenerExample
+//                = new TradeListenerExample(1000, tradeScheduleManager);
         primaryStage.setTitle("Analytics Graph");
         //defining the axes
         final CategoryAxis xAxis = new CategoryAxis(); // we are gonna plot against time

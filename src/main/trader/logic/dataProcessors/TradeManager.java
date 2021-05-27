@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Deprecated
 public class TradeManager {
     /**
      * Key is the aggregate trade id, and the value contains the aggregated trade data, which is

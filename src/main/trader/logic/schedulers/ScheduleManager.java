@@ -26,6 +26,12 @@ public class ScheduleManager {
         sched.start();
     }
 
+    /**
+     *
+     * @param interval Interval period in milliseconds.
+     * @param reference
+     * @throws SchedulerException
+     */
     public void periodicCallback(int interval, String reference) throws SchedulerException {
         JobDetail jobDetail = JobBuilder.newJob(ScheduleJob.class)
                 //.withIdentity("job1", "group1") // name "priceJob", group "group1"

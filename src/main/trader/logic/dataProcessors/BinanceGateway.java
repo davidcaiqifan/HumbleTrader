@@ -10,7 +10,6 @@ import com.binance.api.client.domain.market.OrderBook;
 import customWebSockets.BinanceCustomWebSocketClientImpl;
 
 import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import static com.binance.api.client.impl.BinanceApiServiceGenerator.getSharedClient;
 
@@ -36,9 +35,9 @@ public class BinanceGateway {
         return aggTrades;
     }
 
-    public void subscribeTradeEvents(TradeManager tradeManager) {
+    public void subscribeTradeEvents(TradeEventManager tradeEventManager) {
         webSocketClient.onAggTradeEvent(this.symbol.toLowerCase(), response -> {
-            tradeManager.handleTradeEvent(response);
+            tradeEventManager.handleTradeEvent(response);
         });
     }
 

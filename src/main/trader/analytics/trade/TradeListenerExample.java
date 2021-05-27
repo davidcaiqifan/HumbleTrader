@@ -1,12 +1,16 @@
 package analytics.trade;
 
+import com.binance.api.client.domain.event.AggTradeEvent;
 import com.binance.api.client.domain.market.AggTrade;
+import logic.dataProcessors.BinanceGateway;
 import logic.listeners.TradeEventListener;
 import logic.schedulers.ScheduleEvent;
 import logic.schedulers.ScheduleManager;
+import model.AggsTradeCache;
 
 import java.util.Map;
 
+@Deprecated
 public class TradeListenerExample implements TradeEventListener {
     Map<Long, AggTrade> localTradeCache;
     private ScheduleManager scheduleManager;
@@ -28,8 +32,8 @@ public class TradeListenerExample implements TradeEventListener {
     }
 
     @Override
-    public void handleEvent(Map<Long, AggTrade> tradeCacheEvent) {
-        this.localTradeCache = tradeCacheEvent;
+    public void handleEvent(AggTradeEvent tradeEvent) {
+        //this.localTradeCache = aggsTradeCache.getAggTradesCache();
     }
 
     @Override

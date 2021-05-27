@@ -1,8 +1,10 @@
 package platform;
 
+import com.binance.api.client.domain.event.AggTradeEvent;
 import com.binance.api.client.domain.market.AggTrade;
 import logic.EventManager;
 import logic.EventManagerFactory;
+import logic.dataProcessors.BinanceGateway;
 import logic.dataProcessors.MarketDataManager;
 import logic.schedulers.ScheduleManager;
 import model.AggsTradeCache;
@@ -16,10 +18,12 @@ import java.util.concurrent.Executors;
 
 public class AnalyticsBuilder {
     private String symbol;
-    private ExecutorService executorService = Executors.newCachedThreadPool();;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private EventManagerFactory eventManagerFactory = new EventManagerFactory();
     private EventManager<OrderBookCache> orderBookCacheEventManager;
-    private EventManager<AggsTradeCache> tradeEventManager;
+    private EventManager<AggTradeEvent> tradeEventManager;
+    private MarketDataManager marketDataManager;
+    private BinanceGateway binanceGateway;
 
     public ScheduleManager getOrderBookScheduleManager() {
         return orderBookScheduleManager;
@@ -58,7 +62,7 @@ public class AnalyticsBuilder {
      * Creates a new instance of EventManager<OrderBookCache>. Only one instance is allowed to exist.
      */
     public AnalyticsBuilder withAggsTrade() {
-        this.tradeEventManager = this.eventManagerFactory.getEventManager(AggsTradeCache.class);
+        this.tradeEventManager = this.eventManagerFactory.getEventManager(AggTradeEvent.class);
         try {
             this.tradeScheduleManager = new ScheduleManager(tradeEventManager);
         } catch(Exception e) {
@@ -71,11 +75,17 @@ public class AnalyticsBuilder {
      * initializes market data manager
      */
     public void initialize() {
-        executorService.submit(() -> {
-            MarketDataManager marketDataManager
+        //executorService.submit(() -> {
+            this.marketDataManager
                     = new MarketDataManager("BTCUSDT", orderBookCacheEventManager, tradeEventManager);
             marketDataManager.startOrderBookStreaming();
-        });
+        //});
     }
 
+    public BinanceGateway getBinanceGateway() {
+        //executorService.submit(() -> {
+            binanceGateway = marketDataManager.getBinanceGateway();
+        //});
+        return this.binanceGateway;
+    }
 }
