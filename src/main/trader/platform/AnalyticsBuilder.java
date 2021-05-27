@@ -1,18 +1,13 @@
 package platform;
 
 import com.binance.api.client.domain.event.AggTradeEvent;
-import com.binance.api.client.domain.market.AggTrade;
 import logic.EventManager;
 import logic.EventManagerFactory;
 import logic.dataProcessors.BinanceGateway;
 import logic.dataProcessors.MarketDataManager;
 import logic.schedulers.ScheduleManager;
-import model.AggsTradeCache;
 import model.OrderBookCache;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -71,6 +66,7 @@ public class AnalyticsBuilder {
         return this;
     }
 
+    //should not multi-thread for some reason
     /**
      * initializes market data manager
      */
